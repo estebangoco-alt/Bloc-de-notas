@@ -1,0 +1,19 @@
+Bloc de notas reúne notas, ideas, listas de la compra, tareas, un tablero tipo Trello y un calendario en una sola app, pensada para apuntar al instante desde la pantalla de inicio.
+
+<b>Captura instantánea</b>
+• Widget de captura rápida, atajos del icono y tile de ajustes rápidos
+• Bandeja de entrada para clasificar después
+• Compartir texto desde otras apps
+
+<b>Organiza a tu manera</b>
+• Notas y listas con casillas, colores y notas fijadas
+• Tareas con fecha, prioridad, etiquetas y recordatorios
+• Tablero con columnas y subtareas
+• Calendario con agenda
+• Vistas guardadas, plantillas y modo compra
+
+<b>Tu privacidad primero</b>
+• Todo se guarda en tu dispositivo
+• Sin cuentas, sin anuncios y sin analítica
+• Copia de seguridad y exportación a ZIP y Markdown
+• Software libre (GPL-3.0)

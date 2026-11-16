@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Bloc de notas</string>
+
+    <string name="nav_notes">Notes</string>
+    <string name="nav_tasks">Tasks</string>
+    <string name="nav_board">Board</string>
+    <string name="nav_calendar">Calendar</string>
+
+    <string name="title_notes">My notes</string>
+    <string name="search_hint">Search notes, tasks and ideas</string>
+    <string name="filter_all">All</string>
+    <string name="filter_notes">Notes</string>
+    <string name="filter_ideas">Ideas</string>
+    <string name="filter_shopping">Shopping</string>
+    <string name="filter_tasks">Tasks</string>
+    <string name="filter_pinned">Pinned</string>
+    <string name="fab_new">New</string>
+    <string name="empty_notes">Nothing here yet. Tap New to write your first note.</string>
+
+    <string name="kind_note">Note</string>
+    <string name="kind_idea">Idea</string>
+    <string name="kind_shopping">Shopping</string>
+    <string name="kind_task">Task</string>
+    <string name="kind_inbox">Inbox</string>
+
+    <string name="inbox_title">Inbox</string>
+    <string name="inbox_count">%1$d to sort</string>
+    <string name="inbox_empty">Your inbox is empty. Things you capture quickly land here.</string>
+    <string name="inbox_move">Move to</string>
+    <string name="cd_inbox">Inbox, %1$d to sort</string>
+
+    <string name="editor_title_hint">Title</string>
+    <string name="editor_body_hint">Write something…</string>
+    <string name="editor_add_item">Add item</string>
+    <string name="editor_item_hint">Item</string>
+    <string name="cd_pin">Pin note</string>
+    <string name="cd_unpin">Unpin note</string>
+    <string name="cd_delete">Delete</string>
+    <string name="cd_back">Back</string>
+    <string name="cd_remove_item">Remove item</string>
+    <string name="cd_settings">Settings</string>
+    <string name="cd_color">Note color %1$d</string>
+    <string name="dialog_delete_title">Delete this note?</string>
+    <string name="dialog_delete_text">This can\'t be undone.</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_cancel">Cancel</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="settings_backup_section">Backup</string>
+    <string name="settings_export">Export data</string>
+    <string name="settings_export_desc">Save all your notes to a ZIP file you can keep or move to another device.</string>
+    <string name="settings_import">Import data</string>
+    <string name="settings_import_desc">Restore notes from a backup file made with this app.</string>
+    <string name="settings_backup_note">Backups are plain files stored wherever you choose. They are not encrypted, so keep them somewhere safe.</string>
+    <string name="import_mode_title">How do you want to import?</string>
+    <string name="import_mode_merge">Merge with my notes</string>
+    <string name="import_mode_merge_desc">Adds new notes and updates older ones. Nothing is deleted.</string>
+    <string name="import_mode_replace">Replace everything</string>
+    <string name="import_mode_replace_desc">Deletes the notes on this device and keeps only the backup.</string>
+    <string name="msg_export_ok">Backup saved: %1$d notes.</string>
+    <string name="msg_import_ok">Import finished: %1$d added, %2$d updated, %3$d unchanged.</string>
+    <string name="msg_error_generic">Something went wrong. Try again.</string>
+    <string name="msg_error_invalid">That file is not a valid backup.</string>
+    <string name="msg_error_version">This backup was made by a newer version of the app. Update the app and try again.</string>
+    <string name="msg_error_too_large">The file is too large.</string>
+    <string name="settings_about">About</string>
+    <string name="settings_license">Free software under the GPL-3.0-or-later license. No ads, no tracking and no internet access.</string>
+    <string name="settings_version">Version %1$s</string>
+
+    <string name="coming_soon_title">Coming soon</string>
+    <string name="coming_soon_text">This section is planned for an upcoming version.</string>
+
+    <string name="capture_title">Quick capture</string>
+    <string name="capture_hint">Write or paste something…</string>
+    <string name="capture_save">Save</string>
+    <string name="capture_save_to">Save to</string>
+    <string name="capture_saved">Saved</string>
+    <string name="share_saved">Saved to inbox</string>
+    <string name="share_target_label">Save to Bloc de notas</string>
+
+    <string name="widget_hint">Write a note…</string>
+    <string name="widget_description">Jot something down instantly</string>
+    <string name="action_add">Add</string>
+    <string name="action_save">Save</string>
+
+    <string name="board_title">Board</string>
+    <string name="board_col_todo">To do</string>
+    <string name="board_col_doing">In progress</string>
+    <string name="board_col_done">Done</string>
+    <string name="board_add_card">Add card</string>
+    <string name="board_card_hint">Card title</string>
+    <string name="board_add_column">Add column</string>
+    <string name="board_column_hint">Column name</string>
+    <string name="board_rename_column">Rename column</string>
+    <string name="board_delete_column_title">Delete \"%1$s\"?</string>
+    <string name="board_delete_column_text">The cards are not deleted: they move to the first column.</string>
+    <string name="board_move_left">Move left</string>
+    <string name="board_move_right">Move right</string>
+    <string name="board_move_to">Move to %1$s</string>
+    <string name="board_move_up">Move up</string>
+    <string name="board_move_down">Move down</string>
+    <string name="board_untitled">Untitled</string>
+    <string name="board_checklist_progress">%1$d/%2$d done</string>
+    <string name="cd_card_menu">Card options</string>
+    <string name="cd_column_menu">Column options</string>
+
+    <string name="settings_language_section">Language</string>
+    <string name="settings_language">App language</string>
+    <string name="settings_language_desc">Choose English or Spanish for this app only.</string>
+    <string name="settings_language_system">The app follows the language of your system (English or Spanish).</string>
+    <string name="tasks_overdue">Overdue (%1$d)</string>
+    <string name="tasks_today">Today (%1$d)</string>
+    <string name="tasks_upcoming">Next 7 days (%1$d)</string>
+    <string name="tasks_later">Later (%1$d)</string>
+    <string name="tasks_no_date">No date (%1$d)</string>
+    <string name="tasks_done">Done (%1$d)</string>
+    <string name="tasks_empty">No tasks yet. Tap New to add one with a due date.</string>
+    <string name="task_mark_done">Mark as done</string>
+    <string name="task_add_due">Add due date</string>
+    <string name="task_remove_due">Remove due date</string>
+    <string name="task_add_reminder">Add reminder</string>
+    <string name="task_remove_reminder">Remove reminder</string>
+    <string name="reminder_time_title">Reminder time</string>
+    <string name="reminder_channel_name">Task reminders</string>
+    <string name="reminder_channel_desc">Notifications for tasks with a due date and a reminder.</string>
+    <string name="reminder_text">Due %1$s</string>
+    <string name="calendar_no_tasks">No tasks this day.</string>
+    <string name="action_today">Today</string>
+    <string name="cd_prev_month">Previous month</string>
+    <string name="cd_next_month">Next month</string>
+    <string name="settings_reminders_section">Reminders</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_notifications_desc">Allow this app to show task reminders.</string>
+    <string name="settings_exact_alarms">Exact alarms</string>
+    <string name="settings_exact_alarms_desc">Lets reminders ring at the exact minute. Without it they can arrive a few minutes late.</string>
+</resources>

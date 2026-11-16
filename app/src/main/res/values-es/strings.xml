@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_notes">Notas</string>
+    <string name="nav_tasks">Tareas</string>
+    <string name="nav_board">Tablero</string>
+    <string name="nav_calendar">Calendario</string>
+
+    <string name="title_notes">Mis notas</string>
+    <string name="search_hint">Buscar en notas, tareas e ideas</string>
+    <string name="filter_all">Todo</string>
+    <string name="filter_notes">Notas</string>
+    <string name="filter_ideas">Ideas</string>
+    <string name="filter_shopping">Compra</string>
+    <string name="filter_tasks">Tareas</string>
+    <string name="filter_pinned">Fijadas</string>
+    <string name="fab_new">Nueva</string>
+    <string name="empty_notes">Aún no hay nada. Pulsa Nueva para escribir tu primera nota.</string>
+
+    <string name="kind_note">Nota</string>
+    <string name="kind_idea">Idea</string>
+    <string name="kind_shopping">Compra</string>
+    <string name="kind_task">Tarea</string>
+    <string name="kind_inbox">Bandeja</string>
+
+    <string name="inbox_title">Bandeja</string>
+    <string name="inbox_count">%1$d sin clasificar</string>
+    <string name="inbox_empty">La bandeja está vacía. Lo que captures rápido aparecerá aquí.</string>
+    <string name="inbox_move">Mover a</string>
+    <string name="cd_inbox">Bandeja, %1$d sin clasificar</string>
+
+    <string name="editor_title_hint">Título</string>
+    <string name="editor_body_hint">Escribe algo…</string>
+    <string name="editor_add_item">Añadir elemento</string>
+    <string name="editor_item_hint">Elemento</string>
+    <string name="cd_pin">Fijar nota</string>
+    <string name="cd_unpin">Quitar de fijadas</string>
+    <string name="cd_delete">Eliminar</string>
+    <string name="cd_back">Volver</string>
+    <string name="cd_remove_item">Quitar elemento</string>
+    <string name="cd_settings">Ajustes</string>
+    <string name="cd_color">Color de la nota %1$d</string>
+    <string name="dialog_delete_title">¿Eliminar esta nota?</string>
+    <string name="dialog_delete_text">No se puede deshacer.</string>
+    <string name="action_delete">Eliminar</string>
+    <string name="action_cancel">Cancelar</string>
+
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_backup_section">Copia de seguridad</string>
+    <string name="settings_export">Exportar datos</string>
+    <string name="settings_export_desc">Guarda todas tus notas en un archivo ZIP para conservarlo o llevarlo a otro dispositivo.</string>
+    <string name="settings_import">Importar datos</string>
+    <string name="settings_import_desc">Recupera tus notas desde una copia hecha con esta app.</string>
+    <string name="settings_backup_note">Las copias son archivos normales que guardas donde quieras. No están cifradas: guárdalas en un lugar seguro.</string>
+    <string name="import_mode_title">¿Cómo quieres importar?</string>
+    <string name="import_mode_merge">Combinar con mis notas</string>
+    <string name="import_mode_merge_desc">Añade las notas nuevas y actualiza las más antiguas. No se borra nada.</string>
+    <string name="import_mode_replace">Reemplazar todo</string>
+    <string name="import_mode_replace_desc">Borra las notas de este dispositivo y deja solo las de la copia.</string>
+    <string name="msg_export_ok">Copia guardada: %1$d notas.</string>
+    <string name="msg_import_ok">Importación terminada: %1$d añadidas, %2$d actualizadas, %3$d sin cambios.</string>
+    <string name="msg_error_generic">Algo ha fallado. Inténtalo de nuevo.</string>
+    <string name="msg_error_invalid">Ese archivo no es una copia válida.</string>
+    <string name="msg_error_version">Esta copia es de una versión más nueva de la app. Actualiza la app e inténtalo de nuevo.</string>
+    <string name="msg_error_too_large">El archivo es demasiado grande.</string>
+    <string name="settings_about">Acerca de</string>
+    <string name="settings_license">Software libre con licencia GPL-3.0-or-later. Sin anuncios, sin rastreo y sin acceso a internet.</string>
+    <string name="settings_version">Versión %1$s</string>
+
+    <string name="coming_soon_title">Próximamente</string>
+    <string name="coming_soon_text">Esta sección llegará en una próxima versión.</string>
+
+    <string name="capture_title">Captura rápida</string>
+    <string name="capture_hint">Escribe o pega algo…</string>
+    <string name="capture_save">Guardar</string>
+    <string name="capture_save_to">Guardar en</string>
+    <string name="capture_saved">Guardado</string>
+    <string name="share_saved">Guardado en la bandeja</string>
+    <string name="share_target_label">Guardar en Bloc de notas</string>
+
+    <string name="widget_hint">Escribe una nota…</string>
+    <string name="widget_description">Apunta algo al instante</string>
+    <string name="action_add">Añadir</string>
+    <string name="action_save">Guardar</string>
+
+    <string name="board_title">Tablero</string>
+    <string name="board_col_todo">Por hacer</string>
+    <string name="board_col_doing">En curso</string>
+    <string name="board_col_done">Hecho</string>
+    <string name="board_add_card">Añadir tarjeta</string>
+    <string name="board_card_hint">Título de la tarjeta</string>
+    <string name="board_add_column">Añadir columna</string>
+    <string name="board_column_hint">Nombre de la columna</string>
+    <string name="board_rename_column">Renombrar columna</string>
+    <string name="board_delete_column_title">¿Eliminar \"%1$s\"?</string>
+    <string name="board_delete_column_text">Las tarjetas no se borran: pasan a la primera columna.</string>
+    <string name="board_move_left">Mover a la izquierda</string>
+    <string name="board_move_right">Mover a la derecha</string>
+    <string name="board_move_to">Mover a %1$s</string>
+    <string name="board_move_up">Subir</string>
+    <string name="board_move_down">Bajar</string>
+    <string name="board_untitled">Sin título</string>
+    <string name="board_checklist_progress">%1$d/%2$d hechas</string>
+    <string name="cd_card_menu">Opciones de la tarjeta</string>
+    <string name="cd_column_menu">Opciones de la columna</string>
+
+    <string name="settings_language_section">Idioma</string>
+    <string name="settings_language">Idioma de la app</string>
+    <string name="settings_language_desc">Elige castellano o inglés solo para esta app.</string>
+    <string name="settings_language_system">La app usa el idioma de tu sistema (castellano o inglés).</string>
+    <string name="tasks_overdue">Vencidas (%1$d)</string>
+    <string name="tasks_today">Hoy (%1$d)</string>
+    <string name="tasks_upcoming">Próximos 7 días (%1$d)</string>
+    <string name="tasks_later">Más adelante (%1$d)</string>
+    <string name="tasks_no_date">Sin fecha (%1$d)</string>
+    <string name="tasks_done">Hechas (%1$d)</string>
+    <string name="tasks_empty">Aún no hay tareas. Pulsa Nueva para añadir una con fecha límite.</string>
+    <string name="task_mark_done">Marcar como hecha</string>
+    <string name="task_add_due">Añadir fecha límite</string>
+    <string name="task_remove_due">Quitar fecha límite</string>
+    <string name="task_add_reminder">Añadir recordatorio</string>
+    <string name="task_remove_reminder">Quitar recordatorio</string>
+    <string name="reminder_time_title">Hora del recordatorio</string>
+    <string name="reminder_channel_name">Recordatorios de tareas</string>
+    <string name="reminder_channel_desc">Avisos de las tareas con fecha límite y recordatorio.</string>
+    <string name="reminder_text">Vence el %1$s</string>
+    <string name="calendar_no_tasks">No hay tareas este día.</string>
+    <string name="action_today">Hoy</string>
+    <string name="cd_prev_month">Mes anterior</string>
+    <string name="cd_next_month">Mes siguiente</string>
+    <string name="settings_reminders_section">Recordatorios</string>
+    <string name="settings_notifications">Notificaciones</string>
+    <string name="settings_notifications_desc">Permite que la app muestre los recordatorios de tareas.</string>
+    <string name="settings_exact_alarms">Alarmas exactas</string>
+    <string name="settings_exact_alarms_desc">Hace que el aviso suene en el minuto exacto. Sin ello puede llegar con unos minutos de retraso.</string>
+</resources>

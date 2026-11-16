@@ -1,0 +1,33 @@
+package io.github.estebangocoalt.blocdenotas.capture
+
+import android.os.Bundle
+import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import io.github.estebangocoalt.blocdenotas.R
+import io.github.estebangocoalt.blocdenotas.blocApp
+import io.github.estebangocoalt.blocdenotas.ui.theme.BlocTheme
+import kotlinx.coroutines.launch
+
+/** Se abre desde el widget de captura rápida. Guarda y se cierra enseguida. */
+class QuickCaptureActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        val repository = blocApp.repository
+        setContent {
+            BlocTheme {
+                CaptureSheet(
+                    onDismiss = { finish() },
+                    onSave = { text, destination ->
+                        // El ámbito de la app sobrevive al cierre de esta actividad.
+                        repository.appScope.launch { repository.capture(text, destination) }
+                        Toast.makeText(this, R.string.capture_saved, Toast.LENGTH_SHORT).show()
+                        finish()
+                    },
+                )
+            }
+        }
+    }
+}
