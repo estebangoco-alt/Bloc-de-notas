@@ -134,4 +134,23 @@
     <string name="settings_notifications_desc">Allow this app to show task reminders.</string>
     <string name="settings_exact_alarms">Exact alarms</string>
     <string name="settings_exact_alarms_desc">Lets reminders ring at the exact minute. Without it they can arrive a few minutes late.</string>
+    <string name="template_menu">New from template</string>
+    <string name="template_weekly_shopping">Weekly shopping</string>
+    <string name="template_weekly_shopping_items">Fruit\nVegetables\nBread\nMilk\nEggs\nRice and pasta\nMeat or fish\nCleaning products</string>
+    <string name="template_meeting">Meeting</string>
+    <string name="template_meeting_body">Date:\nAttendees:\n\nAgenda:\n- \n\nNotes:\n\nAction items:\n- </string>
+    <string name="template_project">Project</string>
+    <string name="template_project_title">New project</string>
+    <string name="template_project_body">Goal:\nDeadline:</string>
+    <string name="template_project_items">Define the scope\nPlan the steps\nDo the work\nReview and finish</string>
+    <string name="template_diary">Daily journal</string>
+    <string name="template_diary_body">How was my day?\n\nHighlights:\n\nTomorrow:</string>
+    <string name="shopping_mode">Shopping mode</string>
+    <string name="shopping_progress">%1$d of %2$d in the cart</string>
+    <string name="shopping_all_done">All done!</string>
+    <string name="shopping_empty">This list is empty. Go back and add some items.</string>
+    <string name="shopping_uncheck_all">Uncheck all</string>
+    <string name="shopping_remove_checked">Remove checked</string>
+    <string name="shopping_remove_title">Remove checked items?</string>
+    <string name="shopping_remove_text">The items you have already ticked will be deleted from the list.</string>
 </resources>

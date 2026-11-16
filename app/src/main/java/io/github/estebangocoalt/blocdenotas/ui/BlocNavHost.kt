@@ -1,5 +1,6 @@
 package io.github.estebangocoalt.blocdenotas.ui
 
+import io.github.estebangocoalt.blocdenotas.ui.shopping.ShoppingModeScreen
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
@@ -45,12 +46,21 @@ private object Routes {
     const val CALENDAR = "calendar"
     const val INBOX = "inbox"
     const val SETTINGS = "settings"
-    const val EDITOR_PATTERN = "editor?noteId={noteId}&kind={kind}&due={due}"
+    const val EDITOR_PATTERN = "editor?noteId={noteId}&kind={kind}&due={due}&template={template}"
+    const val SHOPPING_PATTERN = "shopping/{noteId}"
 
-    fun editor(noteId: String? = null, kind: NoteKind = NoteKind.NOTE, dueAt: Long? = null): String = buildString {
+    fun shopping(noteId: String): String = "shopping/$noteId"
+
+    fun editor(
+        noteId: String? = null,
+        kind: NoteKind = NoteKind.NOTE,
+        dueAt: Long? = null,
+        template: String? = null,
+    ): String = buildString {
         append("editor?kind=").append(kind.name)
         if (noteId != null) append("&noteId=").append(noteId)
         if (dueAt != null) append("&due=").append(dueAt)
+        if (template != null) append("&template=").append(template)
     }
 }
 
@@ -93,6 +103,7 @@ fun BlocNavHost(
             composable(Routes.NOTES) {
                 HomeScreen(
                     onNewNote = { navController.navigate(Routes.editor()) },
+                    onNewFromTemplate = { t -> navController.navigate(Routes.editor(kind = t.kind, template = t.name)) },
                     onOpenNote = { id -> navController.navigate(Routes.editor(id)) },
                     onOpenInbox = { navController.navigate(Routes.INBOX) },
                     onOpenSettings = { navController.navigate(Routes.SETTINGS) },
@@ -132,9 +143,23 @@ fun BlocNavHost(
                         nullable = true
                         defaultValue = null
                     },
+                    navArgument("template") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
                 ),
             ) {
-                EditorScreen(onBack = { navController.popBackStack() })
+                EditorScreen(
+                    onBack = { navController.popBackStack() },
+                    onShoppingMode = { id -> navController.navigate(Routes.shopping(id)) },
+                )
+            }
+            composable(
+                route = Routes.SHOPPING_PATTERN,
+                arguments = listOf(navArgument("noteId") { type = NavType.StringType }),
+            ) {
+                ShoppingModeScreen(onBack = { navController.popBackStack() })
             }
         }
 

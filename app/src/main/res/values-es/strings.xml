@@ -132,4 +132,23 @@
     <string name="settings_notifications_desc">Permite que la app muestre los recordatorios de tareas.</string>
     <string name="settings_exact_alarms">Alarmas exactas</string>
     <string name="settings_exact_alarms_desc">Hace que el aviso suene en el minuto exacto. Sin ello puede llegar con unos minutos de retraso.</string>
+    <string name="template_menu">Nueva desde plantilla</string>
+    <string name="template_weekly_shopping">Compra semanal</string>
+    <string name="template_weekly_shopping_items">Fruta\nVerdura\nPan\nLeche\nHuevos\nArroz y pasta\nCarne o pescado\nProductos de limpieza</string>
+    <string name="template_meeting">Reunión</string>
+    <string name="template_meeting_body">Fecha:\nAsistentes:\n\nOrden del día:\n- \n\nNotas:\n\nAcciones a seguir:\n- </string>
+    <string name="template_project">Proyecto</string>
+    <string name="template_project_title">Nuevo proyecto</string>
+    <string name="template_project_body">Objetivo:\nFecha límite:</string>
+    <string name="template_project_items">Definir el alcance\nPlanificar los pasos\nHacer el trabajo\nRevisar y terminar</string>
+    <string name="template_diary">Diario</string>
+    <string name="template_diary_body">¿Cómo ha ido el día?\n\nLo mejor:\n\nMañana:</string>
+    <string name="shopping_mode">Modo compra</string>
+    <string name="shopping_progress">%1$d de %2$d en el carro</string>
+    <string name="shopping_all_done">¡Todo listo!</string>
+    <string name="shopping_empty">Esta lista está vacía. Vuelve atrás y añade artículos.</string>
+    <string name="shopping_uncheck_all">Desmarcar todo</string>
+    <string name="shopping_remove_checked">Quitar marcados</string>
+    <string name="shopping_remove_title">¿Quitar los marcados?</string>
+    <string name="shopping_remove_text">Los artículos que ya has marcado se borrarán de la lista.</string>
 </resources>

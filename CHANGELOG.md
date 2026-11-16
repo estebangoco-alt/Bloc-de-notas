@@ -5,6 +5,8 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y 
 ## [Sin publicar]
 
 ### Añadido
+- Plantillas: compra semanal, reunión, proyecto y diario, desde el icono de lista de la pantalla de notas.
+- Modo compra: filas grandes, pantalla siempre encendida, los artículos marcados bajan al final, con progreso y botones «Desmarcar todo» y «Quitar marcados». Se abre desde el carrito del editor de una lista de compra.
 - Calendario mensual: puntos en los días con tareas, lista de tareas del día elegido y botón para crear una con esa fecha.
 - Recordatorios con notificación: elige una hora en una tarea con fecha; botón «Marcar como hecha» en el aviso. Se reprograman solo al reiniciar el móvil (Android borra las alarmas al apagarse). Permisos: notificaciones y alarmas exactas (opcional).
 - Tareas con fecha límite: pestaña Tareas agrupada en vencidas, hoy, próximos 7 días, más adelante, sin fecha y hechas; marcar como hecha con un toque y elegir la fecha en el editor. La fecha también se ve en las tarjetas del tablero.

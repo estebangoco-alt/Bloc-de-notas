@@ -1,5 +1,12 @@
 package io.github.estebangocoalt.blocdenotas.ui.home
 
+import io.github.estebangocoalt.blocdenotas.ui.editor.NoteTemplate
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material.icons.filled.List
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -71,6 +78,7 @@ private fun NoteFilter.labelRes(): Int = when (this) {
 @Composable
 fun HomeScreen(
     onNewNote: () -> Unit,
+    onNewFromTemplate: (NoteTemplate) -> Unit,
     onOpenNote: (String) -> Unit,
     onOpenInbox: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -96,6 +104,23 @@ fun HomeScreen(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f),
                 )
+                var templateMenu by remember { mutableStateOf(false) }
+                Box {
+                    IconButton(onClick = { templateMenu = true }) {
+                        Icon(Icons.Default.List, contentDescription = stringResource(R.string.template_menu))
+                    }
+                    DropdownMenu(expanded = templateMenu, onDismissRequest = { templateMenu = false }) {
+                        NoteTemplate.entries.forEach { template ->
+                            DropdownMenuItem(
+                                text = { Text(stringResource(template.label)) },
+                                onClick = {
+                                    templateMenu = false
+                                    onNewFromTemplate(template)
+                                },
+                            )
+                        }
+                    }
+                }
                 val inboxDescription = stringResource(R.string.cd_inbox, inboxCount)
                 IconButton(
                     onClick = onOpenInbox,

@@ -1,5 +1,6 @@
 package io.github.estebangocoalt.blocdenotas.ui.editor
 
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -71,6 +72,7 @@ import io.github.estebangocoalt.blocdenotas.ui.theme.NoteSwatch
 @Composable
 fun EditorScreen(
     onBack: () -> Unit,
+    onShoppingMode: (String) -> Unit,
     modifier: Modifier = Modifier,
     vm: EditorViewModel = viewModel(),
 ) {
@@ -101,6 +103,14 @@ fun EditorScreen(
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
                 }
                 Spacer(Modifier.weight(1f))
+                if (vm.kind == NoteKind.SHOPPING) {
+                    IconButton(onClick = {
+                        vm.saveOnExit()
+                        onShoppingMode(vm.currentId)
+                    }) {
+                        Icon(Icons.Default.ShoppingCart, contentDescription = stringResource(R.string.shopping_mode))
+                    }
+                }
                 IconButton(onClick = { vm.pinned = !vm.pinned }) {
                     Icon(
                         Icons.Default.Star,

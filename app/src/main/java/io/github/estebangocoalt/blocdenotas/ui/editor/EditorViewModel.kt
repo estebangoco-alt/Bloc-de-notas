@@ -1,5 +1,9 @@
 package io.github.estebangocoalt.blocdenotas.ui.editor
 
+import java.time.format.FormatStyle
+import java.time.format.DateTimeFormatter
+import java.time.LocalDate
+import io.github.estebangocoalt.blocdenotas.data.TemplateText
 import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -29,6 +33,7 @@ class EditItem(val id: String, text: String, checked: Boolean) {
 class EditorViewModel(app: Application, handle: SavedStateHandle) : AndroidViewModel(app) {
     private val repository = app.blocApp.repository
     private val existingId: String? = handle["noteId"]
+    private val template: NoteTemplate? = NoteTemplate.fromName(handle["template"])
 
     private val id: String = existingId ?: UUID.randomUUID().toString()
     private var createdAt: Long = System.currentTimeMillis()
@@ -67,6 +72,9 @@ class EditorViewModel(app: Application, handle: SavedStateHandle) : AndroidViewM
                 reminderMinute = note.reminderMinute
                 existing.items.forEach { items += EditItem(it.id, it.text, it.checked) }
                 lastSavedKey = stateKey()
+            } else if (template != null) {
+                applyTemplate(template)
+                lastSavedKey = stateKey() // una plantilla sin tocar no se guarda al salir
             } else if (kind == NoteKind.TASK) {
                 // Nueva tarea creada desde el calendario: ya viene con su fecha.
                 handle.get<String>("due")?.toLongOrNull()?.let { dueAt = TaskLogic.normalize(it) }
@@ -74,6 +82,21 @@ class EditorViewModel(app: Application, handle: SavedStateHandle) : AndroidViewM
                 items += EditItem(UUID.randomUUID().toString(), "", false)
             }
             loaded = true
+        }
+    }
+
+    /** Id de la nota abierta (para abrir el modo compra). */
+    val currentId: String get() = id
+
+    private fun applyTemplate(t: NoteTemplate) {
+        val ctx = getApplication<Application>()
+        kind = t.kind
+        colorIndex = t.kind.defaultColor
+        title = t.title?.let { ctx.getString(it) }
+            ?: LocalDate.now().format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG))
+        body = t.body?.let { ctx.getString(it) }.orEmpty()
+        t.items?.let { res ->
+            TemplateText.lines(ctx.getString(res)).forEach { items += EditItem(UUID.randomUUID().toString(), it, false) }
         }
     }
 
