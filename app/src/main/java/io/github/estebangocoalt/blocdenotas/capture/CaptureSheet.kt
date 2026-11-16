@@ -39,6 +39,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.estebangocoalt.blocdenotas.R
 import io.github.estebangocoalt.blocdenotas.data.CaptureDestination
+import io.github.estebangocoalt.blocdenotas.data.Priority
+import io.github.estebangocoalt.blocdenotas.ui.common.priorityLabelRes
 
 /**
  * Hoja de captura rápida: se abre desde el widget con el teclado ya activo.
@@ -47,10 +49,11 @@ import io.github.estebangocoalt.blocdenotas.data.CaptureDestination
 @Composable
 fun CaptureSheet(
     onDismiss: () -> Unit,
-    onSave: (text: String, destination: CaptureDestination) -> Unit,
+    onSave: (text: String, destination: CaptureDestination, priority: Int) -> Unit,
 ) {
     var text by rememberSaveable { mutableStateOf("") }
     var destination by rememberSaveable { mutableStateOf(CaptureDestination.INBOX) }
+    var priority by rememberSaveable { mutableStateOf(Priority.NONE) }
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
@@ -111,8 +114,25 @@ fun CaptureSheet(
                         )
                     }
                 }
+                // La prioridad solo se elige cuando se guarda como tarea.
+                if (destination == CaptureDestination.TASK) {
+                    Text(
+                        text = stringResource(R.string.capture_priority),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf(Priority.NONE, Priority.LOW, Priority.MEDIUM, Priority.HIGH).forEach { level ->
+                            FilterChip(
+                                selected = priority == level,
+                                onClick = { priority = level },
+                                label = { Text(stringResource(priorityLabelRes(level))) },
+                            )
+                        }
+                    }
+                }
                 Button(
-                    onClick = { onSave(text, destination) },
+                    onClick = { onSave(text, destination, priority) },
                     enabled = text.isNotBlank(),
                     modifier = Modifier.align(Alignment.End),
                 ) {

@@ -1,5 +1,7 @@
 package io.github.estebangocoalt.blocdenotas.ui.tasks
 
+import io.github.estebangocoalt.blocdenotas.ui.common.SettingsButton
+import io.github.estebangocoalt.blocdenotas.ui.common.PropertyChips
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +17,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import io.github.estebangocoalt.blocdenotas.ui.common.formatMinute
+import io.github.estebangocoalt.blocdenotas.ui.theme.NoteColors
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +42,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.estebangocoalt.blocdenotas.R
 import io.github.estebangocoalt.blocdenotas.data.NoteWithItems
+import io.github.estebangocoalt.blocdenotas.data.RepeatRule
+import io.github.estebangocoalt.blocdenotas.ui.editor.labelRes
 import io.github.estebangocoalt.blocdenotas.data.TaskBucket
 import io.github.estebangocoalt.blocdenotas.data.TaskLogic
 import io.github.estebangocoalt.blocdenotas.ui.common.formatDueDate
@@ -53,6 +64,7 @@ private fun TaskBucket.titleRes(): Int = when (this) {
 fun TasksScreen(
     onOpenTask: (String) -> Unit,
     onNewTask: () -> Unit,
+    onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
     vm: TasksViewModel = viewModel(),
 ) {
@@ -63,12 +75,18 @@ fun TasksScreen(
 
     Box(modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize().statusBarsPadding()) {
-            Text(
-                text = stringResource(R.string.nav_tasks),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
+            Row(
                 modifier = Modifier.padding(start = 20.dp, top = 16.dp, end = 20.dp, bottom = 8.dp),
-            )
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.nav_tasks),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f),
+                )
+                SettingsButton(onOpenSettings)
+            }
             if (groups.isEmpty()) {
                 Text(
                     text = stringResource(R.string.tasks_empty),
@@ -80,7 +98,7 @@ fun TasksScreen(
             LazyColumn(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 contentPadding = PaddingValues(bottom = 96.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 groups.forEach { (bucket, list) ->
                     item(key = "header-${bucket.name}") {
@@ -112,7 +130,10 @@ fun TasksScreen(
         ExtendedFloatingActionButton(
             onClick = onNewTask,
             icon = { Icon(Icons.Default.Add, contentDescription = null) },
-            text = { Text(stringResource(R.string.fab_new)) },
+            text = { Text(stringResource(R.string.fab_new), fontWeight = FontWeight.SemiBold) },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            shape = androidx.compose.foundation.shape.CircleShape,
             modifier = Modifier.align(Alignment.BottomEnd).padding(20.dp),
         )
     }
@@ -127,31 +148,57 @@ internal fun TaskRow(
 ) {
     val note = task.note
     val done = note.completedAt != null
+    val swatch = NoteColors.at(note.colorIndex)
     val title = note.title.ifBlank {
         note.body.lineSequence().firstOrNull { it.isNotBlank() }.orEmpty()
             .ifBlank { stringResource(R.string.board_untitled) }
     }
+    val subtasksDone = task.items.count { it.checked }
     Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onOpen).padding(horizontal = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .background(swatch.background.copy(alpha = if (done) 0.55f else 1f))
+            .clickable(onClick = onOpen)
+            .padding(start = 4.dp, end = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Checkbox(checked = done, onCheckedChange = onToggle)
-        Column(Modifier.weight(1f).padding(vertical = 8.dp)) {
+        Checkbox(
+            checked = done,
+            onCheckedChange = onToggle,
+            colors = CheckboxDefaults.colors(
+                checkedColor = swatch.accent,
+                uncheckedColor = swatch.accent,
+                checkmarkColor = Color.White,
+            ),
+        )
+        Column(Modifier.weight(1f).padding(vertical = 10.dp)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
                 textDecoration = if (done) TextDecoration.LineThrough else null,
-                color = if (done) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                color = swatch.content.copy(alpha = if (done) 0.6f else 1f),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
-            note.dueAt?.let { due ->
+            val detail = buildList {
+                note.dueAt?.let { add(formatDueDate(it)) }
+                note.reminderMinute?.let { add(formatMinute(it)) }
+                RepeatRule.fromName(note.repeatRule).takeIf { it != RepeatRule.NONE }
+                    ?.let { add("↻ " + stringResource(it.labelRes())) }
+                if (task.items.isNotEmpty()) add("$subtasksDone/${task.items.size}")
+            }.joinToString(" · ")
+            if (detail.isNotEmpty()) {
                 Text(
-                    text = formatDueDate(due),
+                    text = detail,
                     style = MaterialTheme.typography.labelMedium,
-                    color = if (overdue) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = if (overdue) FontWeight.Bold else FontWeight.Normal,
+                    color = if (overdue) MaterialTheme.colorScheme.error else swatch.accent,
                 )
             }
+            PropertyChips(note.priority, note.tags, modifier = Modifier.padding(top = 6.dp))
         }
     }
 }

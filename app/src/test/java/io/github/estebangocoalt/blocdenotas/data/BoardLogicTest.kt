@@ -63,4 +63,22 @@ class BoardLogicTest {
         assertTrue(BoardLogic.shiftColumn(columns, "todo", -1).isEmpty())
         assertTrue(BoardLogic.shiftColumn(columns, "nada", 1).isEmpty())
     }
+
+    @Test
+    fun columnsAndCardsBelongToTheirBoard() {
+        val boards = listOf(BoardEntity("b1", "Casa", 0), BoardEntity("b2", "Curso", 1))
+        val cols = listOf(
+            BoardColumnEntity("old", "Antigua", 0), // sin tablero: va al primero
+            BoardColumnEntity("c2", "Por hacer", 0, boardId = "b2"),
+            BoardColumnEntity("lost", "Huérfana", 1, boardId = "borrado"), // tablero desconocido: al primero
+        )
+        assertEquals(listOf("old", "lost"), BoardLogic.columnsOf(boards, cols, "b1").map { it.id })
+        assertEquals(listOf("c2"), BoardLogic.columnsOf(boards, cols, "b2").map { it.id })
+
+        val cards = listOf(card("a", null, 0), card("b", "c2", 0), card("c", "old", 0), card("d", "inexistente", 0))
+        val first = BoardLogic.cardsOf(cols, BoardLogic.columnsOf(boards, cols, "b1"), true, cards)
+        val second = BoardLogic.cardsOf(cols, BoardLogic.columnsOf(boards, cols, "b2"), false, cards)
+        assertEquals(listOf("a", "c", "d"), first.map { it.id })
+        assertEquals(listOf("b"), second.map { it.id })
+    }
 }

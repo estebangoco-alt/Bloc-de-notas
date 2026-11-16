@@ -1,5 +1,9 @@
 package io.github.estebangocoalt.blocdenotas.ui.shopping
 
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -76,38 +80,68 @@ fun ShoppingModeScreen(
     val total = items.size
     val done = items.count { it.checked }
 
-    Surface(modifier.fillMaxSize(), color = swatch.background, contentColor = swatch.content) {
-        Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
+    Surface(modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        Column(Modifier.fillMaxSize().navigationBarsPadding()) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .background(swatch.background, RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
+                    .statusBarsPadding()
+                    .padding(start = 4.dp, end = 16.dp, bottom = 16.dp),
             ) {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
-                }
-                Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onBack) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.cd_back),
+                            tint = swatch.content,
+                        )
+                    }
                     Text(
                         text = data?.note?.title.orEmpty().ifBlank { stringResource(R.string.shopping_mode) },
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        maxLines = 1,
+                        color = swatch.content,
+                        maxLines = 2,
+                        modifier = Modifier.weight(1f),
                     )
+                    Text(
+                        text = stringResource(R.string.shopping_screen_on),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = swatch.content,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.6f))
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                    )
+                }
+                Row(Modifier.fillMaxWidth().padding(start = 12.dp, top = 4.dp)) {
                     Text(
                         text = if (total > 0 && done == total) {
                             stringResource(R.string.shopping_all_done)
                         } else {
                             stringResource(R.string.shopping_progress, done, total)
                         },
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = swatch.content,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        text = "${if (total == 0) 0 else done * 100 / total} %",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = swatch.content,
                     )
                 }
+                LinearProgressIndicator(
+                    progress = { if (total == 0) 0f else done.toFloat() / total },
+                    color = swatch.accent,
+                    trackColor = Color.White.copy(alpha = 0.8f),
+                    modifier = Modifier.fillMaxWidth().padding(start = 12.dp, top = 6.dp).height(8.dp).clip(CircleShape),
+                )
             }
-            LinearProgressIndicator(
-                progress = { if (total == 0) 0f else done.toFloat() / total },
-                color = swatch.accent,
-                trackColor = swatch.content.copy(alpha = 0.15f),
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-            )
 
             if (total == 0) {
                 Text(
@@ -119,19 +153,28 @@ fun ShoppingModeScreen(
 
             LazyColumn(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 20.dp, vertical = 8.dp),
             ) {
                 items(items, key = { it.id }) { item ->
                     ShoppingRow(item = item, swatch = swatch, onToggle = { vm.setChecked(item.id, !item.checked) })
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f))
                 }
             }
 
             if (done > 0) {
-                Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = vm::uncheckAll) { Text(stringResource(R.string.shopping_uncheck_all)) }
-                    TextButton(onClick = { confirmRemove = true }) { Text(stringResource(R.string.shopping_remove_checked)) }
+                TextButton(onClick = vm::uncheckAll, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                    Text(stringResource(R.string.shopping_uncheck_all))
                 }
+            }
+            Button(
+                onClick = { if (done > 0) confirmRemove = true else onBack() },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp).height(56.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.shopping_finish),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
             }
         }
     }
@@ -156,24 +199,21 @@ fun ShoppingModeScreen(
 
 @Composable
 private fun ShoppingRow(item: ChecklistItemEntity, swatch: NoteSwatch, onToggle: () -> Unit) {
-    val shape = RoundedCornerShape(18.dp)
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 72.dp)
-            .clip(shape)
-            .background(Color.White.copy(alpha = if (item.checked) 0.25f else 0.6f))
             .clickable(onClick = onToggle)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         BigCheck(checked = item.checked, swatch = swatch)
         Text(
             text = item.text,
             fontSize = 22.sp,
-            fontWeight = FontWeight.Medium,
+            fontWeight = FontWeight.SemiBold,
             textDecoration = if (item.checked) TextDecoration.LineThrough else null,
-            color = swatch.content.copy(alpha = if (item.checked) 0.5f else 1f),
+            color = if (item.checked) swatch.accent.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(start = 16.dp).weight(1f),
         )
     }

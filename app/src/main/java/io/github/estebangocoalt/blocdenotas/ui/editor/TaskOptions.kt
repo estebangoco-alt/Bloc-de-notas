@@ -1,5 +1,14 @@
 package io.github.estebangocoalt.blocdenotas.ui.editor
 
+import io.github.estebangocoalt.blocdenotas.data.Priority
+import io.github.estebangocoalt.blocdenotas.ui.common.priorityLabelRes
+import androidx.compose.material3.MaterialTheme
+import androidx.annotation.StringRes
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.FilterChip
+import io.github.estebangocoalt.blocdenotas.data.RepeatRule
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
@@ -57,6 +66,10 @@ fun TaskOptions(
     onDueChange: (Long?) -> Unit,
     reminderMinute: Int?,
     onReminderChange: (Int?) -> Unit,
+    repeatRule: RepeatRule,
+    onRepeatChange: (RepeatRule) -> Unit,
+    priority: Int,
+    onPriorityChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var showPicker by remember { mutableStateOf(false) }
@@ -100,6 +113,23 @@ fun TaskOptions(
         }
     }
 
+    Row(
+        modifier = modifier
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(stringResource(R.string.task_priority), style = MaterialTheme.typography.labelLarge)
+        listOf(Priority.NONE, Priority.LOW, Priority.MEDIUM, Priority.HIGH).forEach { level ->
+            FilterChip(
+                selected = priority == level,
+                onClick = { onPriorityChange(level) },
+                label = { Text(stringResource(priorityLabelRes(level))) },
+            )
+        }
+    }
+
     if (dueAt != null) {
         Row(
             modifier = modifier.padding(horizontal = 12.dp),
@@ -122,6 +152,25 @@ fun TaskOptions(
                 IconButton(onClick = { onReminderChange(null) }) {
                     Icon(Icons.Default.Close, contentDescription = stringResource(R.string.task_remove_reminder))
                 }
+            }
+        }
+    }
+
+    if (dueAt != null) {
+        Row(
+            modifier = modifier
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.task_repeat))
+            RepeatRule.entries.forEach { rule ->
+                FilterChip(
+                    selected = repeatRule == rule,
+                    onClick = { onRepeatChange(rule) },
+                    label = { Text(stringResource(rule.labelRes())) },
+                )
             }
         }
     }
@@ -174,4 +223,13 @@ fun TaskOptions(
             DatePicker(state = pickerState)
         }
     }
+}
+
+@StringRes
+internal fun RepeatRule.labelRes(): Int = when (this) {
+    RepeatRule.NONE -> R.string.repeat_none
+    RepeatRule.DAILY -> R.string.repeat_daily
+    RepeatRule.WEEKLY -> R.string.repeat_weekly
+    RepeatRule.MONTHLY -> R.string.repeat_monthly
+    RepeatRule.YEARLY -> R.string.repeat_yearly
 }

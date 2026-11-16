@@ -1,5 +1,12 @@
 package io.github.estebangocoalt.blocdenotas.ui.theme
 
+import android.app.Activity
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+import io.github.estebangocoalt.blocdenotas.blocApp
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -59,18 +66,32 @@ object NoteColors {
 }
 
 @Composable
-fun BlocTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false,
-    content: @Composable () -> Unit,
-) {
+fun BlocTheme(content: @Composable () -> Unit) {
+    val context = LocalContext.current
+    val prefs = context.blocApp.themePrefs
+    val mode by prefs.mode.collectAsState()
+    val dynamicPref by prefs.dynamic.collectAsState()
+    val darkTheme = when (mode) {
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+    }
+    val dynamicColor = dynamicPref && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
+        dynamicColor -> if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         darkTheme -> DarkColors
         else -> LightColors
+    }
+
+    // Iconos de la barra de estado y de navegación legibles con el tema elegido.
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as? Activity)?.window ?: return@SideEffect
+            val controller = WindowCompat.getInsetsController(window, view)
+            controller.isAppearanceLightStatusBars = !darkTheme
+            controller.isAppearanceLightNavigationBars = !darkTheme
+        }
     }
     MaterialTheme(colorScheme = colorScheme, content = content)
 }

@@ -36,6 +36,11 @@ importar en otro dispositivo. Este documento describe el formato (versión 1).
       "dueAt": 1731628800000,
       "completedAt": null,
       "reminderMinute": 540,
+      "repeat": "WEEKLY",
+      "priority": 3,
+      "tags": ["casa", "curso"],
+      "parentId": "uuid-de-la-nota-madre",
+      "deletedAt": null,
       "columnId": "uuid-de-columna",
       "columnPosition": 0,
       "items": [
@@ -48,11 +53,19 @@ importar en otro dispositivo. Este documento describe el formato (versión 1).
 
 `kind`: `NOTE`, `TASK`, `IDEA`, `SHOPPING`. Las fechas son milisegundos Unix.
 
+`repeat` indica si la tarea se repite: `DAILY`, `WEEKLY`, `MONTHLY` o `YEARLY` (ausente o `null` = no se repite). Al marcarla como hecha pasa a su siguiente fecha.
+
+`priority` es la prioridad de la tarea (0 = ninguna, 1 = baja, 2 = media, 3 = alta) y `tags` la lista de etiquetas; ambos son opcionales.
+
+`parentId` es el id de la nota que contiene esta subpágina (ausente o `null` = nota de primer nivel) y `deletedAt` el instante en que se envió a la papelera (`null` = no está en la papelera); ambos son opcionales.
+
 `reminderMinute` es la hora del aviso en minutos desde las 00:00 (540 = 09:00, hora local del día límite).
 
 `dueAt` es la medianoche UTC del día límite de una tarea y `completedAt` el instante en que se marcó como hecha (`null` = pendiente).
 
 `columns`, `columnId` y `columnPosition` describen el tablero (solo las tareas lo usan). Son opcionales: las copias anteriores sin ellos se importan igual y sus tareas caen en la primera columna.
+
+`boards` es la lista de tableros (uno por proyecto: `id`, `title`, `position`) y cada columna indica su tablero en `boardId`. Son opcionales: sin ellos (o con `boardId` vacío o desconocido) las columnas pertenecen al primer tablero.
 
 ## Reglas de importación
 

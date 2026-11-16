@@ -1,5 +1,10 @@
 package io.github.estebangocoalt.blocdenotas.ui.settings
 
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Switch
+import io.github.estebangocoalt.blocdenotas.blocApp
+import io.github.estebangocoalt.blocdenotas.ui.theme.ThemeMode
 import android.net.Uri
 import android.provider.Settings
 import android.os.Build
@@ -58,6 +63,7 @@ import io.github.estebangocoalt.blocdenotas.backup.ImportMode
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
+    onOpenTrash: () -> Unit,
     modifier: Modifier = Modifier,
     vm: SettingsViewModel = viewModel(),
 ) {
@@ -71,6 +77,9 @@ fun SettingsScreen(
     val exportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/zip"),
     ) { uri -> if (uri != null) vm.export(uri) }
+    val markdownLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip"),
+    ) { uri -> if (uri != null) vm.exportMarkdown(uri) }
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument(),
     ) { uri -> if (uri != null) pendingImport = uri }
@@ -123,6 +132,14 @@ fun SettingsScreen(
                 },
             )
             ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_export_md)) },
+                supportingContent = { Text(stringResource(R.string.settings_export_md_desc)) },
+                leadingContent = { Icon(Icons.Default.Share, contentDescription = null) },
+                modifier = Modifier.clickable(enabled = !busy) {
+                    markdownLauncher.launch(BackupManager.suggestedMarkdownFileName())
+                },
+            )
+            ListItem(
                 headlineContent = { Text(stringResource(R.string.settings_import)) },
                 supportingContent = { Text(stringResource(R.string.settings_import_desc)) },
                 leadingContent = { Icon(Icons.Default.Refresh, contentDescription = null) },
@@ -135,6 +152,15 @@ fun SettingsScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.trash_title)) },
+                supportingContent = { Text(stringResource(R.string.settings_trash_desc)) },
+                leadingContent = { Icon(Icons.Default.Delete, contentDescription = null) },
+                modifier = Modifier.clickable(onClick = onOpenTrash),
             )
 
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
@@ -164,6 +190,83 @@ fun SettingsScreen(
 
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
 
+            SectionLabel(R.string.settings_appearance_section)
+            val themePrefs = context.blocApp.themePrefs
+            val themeMode by themePrefs.mode.collectAsStateWithLifecycle()
+            val dynamic by themePrefs.dynamic.collectAsStateWithLifecycle()
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                listOf(
+                    ThemeMode.SYSTEM to R.string.theme_system,
+                    ThemeMode.LIGHT to R.string.theme_light,
+                    ThemeMode.DARK to R.string.theme_dark,
+                ).forEach { (option, label) ->
+                    FilterChip(
+                        selected = themeMode == option,
+                        onClick = { themePrefs.setMode(option) },
+                        label = { Text(stringResource(label)) },
+                    )
+                }
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.settings_dynamic)) },
+                    supportingContent = { Text(stringResource(R.string.settings_dynamic_desc)) },
+                    trailingContent = {
+                        Switch(checked = dynamic, onCheckedChange = { themePrefs.setDynamic(it) })
+                    },
+                )
+            }
+
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+
+            SectionLabel(R.string.settings_calendar_section)
+            val calendarPrefs = context.blocApp.calendarPrefs
+            val region by calendarPrefs.region.collectAsStateWithLifecycle()
+            val showSaints by calendarPrefs.showSaints.collectAsStateWithLifecycle()
+            var pickingRegion by remember { mutableStateOf(false) }
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_holidays)) },
+                supportingContent = { Text(stringResource(region.labelRes())) },
+                modifier = Modifier.clickable { pickingRegion = true },
+            )
+            if (pickingRegion) {
+                HolidayRegionDialog(
+                    selected = region,
+                    onSelect = { calendarPrefs.setRegion(it) },
+                    onDismiss = { pickingRegion = false },
+                )
+            }
+            Text(
+                text = stringResource(R.string.settings_holidays_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+            )
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_saints)) },
+                supportingContent = { Text(stringResource(R.string.settings_saints_desc)) },
+                trailingContent = {
+                    Switch(checked = showSaints, onCheckedChange = { calendarPrefs.setShowSaints(it) })
+                },
+            )
+
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+
+            SectionLabel(R.string.settings_security_section)
+            val lockEnabled by context.blocApp.appLock.enabled.collectAsStateWithLifecycle()
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_lock)) },
+                supportingContent = { Text(stringResource(R.string.settings_lock_desc)) },
+                trailingContent = {
+                    Switch(checked = lockEnabled, onCheckedChange = { vm.setLockEnabled(it) })
+                },
+            )
+
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+
             SectionLabel(R.string.settings_language_section)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 ListItem(
@@ -182,6 +285,19 @@ fun SettingsScreen(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 )
             }
+
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+
+            SectionLabel(R.string.settings_demo_section)
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_demo_load)) },
+                supportingContent = { Text(stringResource(R.string.settings_demo_load_desc)) },
+                modifier = Modifier.clickable { vm.loadDemo() },
+            )
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_demo_remove)) },
+                modifier = Modifier.clickable { vm.removeDemo() },
+            )
 
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
 

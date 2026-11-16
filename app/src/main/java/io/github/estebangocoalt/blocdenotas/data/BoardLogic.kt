@@ -8,6 +8,35 @@ package io.github.estebangocoalt.blocdenotas.data
  */
 object BoardLogic {
 
+    /**
+     * Columnas del tablero [boardId]. Las columnas sin tablero (o de un tablero desconocido)
+     * pertenecen al primer tablero de [boards]. Sin tableros, devuelve todas.
+     */
+    fun columnsOf(boards: List<BoardEntity>, columns: List<BoardColumnEntity>, boardId: String): List<BoardColumnEntity> {
+        if (boards.isEmpty()) return columns
+        val known = boards.map { it.id }.toSet()
+        val isFirst = boardId == boards.first().id
+        return columns.filter { if (it.boardId in known) it.boardId == boardId else isFirst }
+    }
+
+    /**
+     * Tarjetas que se ven en un tablero: las que están en una de sus columnas y, solo en el
+     * primer tablero, las que no tienen columna (o la perdieron).
+     */
+    fun cardsOf(
+        allColumns: List<BoardColumnEntity>,
+        boardColumns: List<BoardColumnEntity>,
+        isFirstBoard: Boolean,
+        cards: List<NoteEntity>,
+    ): List<NoteEntity> {
+        val all = allColumns.map { it.id }.toSet()
+        val mine = boardColumns.map { it.id }.toSet()
+        return cards.filter { card ->
+            val column = card.columnId
+            if (column != null && column in all) column in mine else isFirstBoard
+        }
+    }
+
     /** Agrupa las tarjetas por columna y las ordena por posición (a igual posición, la más nueva primero). */
     fun group(columns: List<BoardColumnEntity>, cards: List<NoteEntity>): Map<String, List<NoteEntity>> {
         if (columns.isEmpty()) return emptyMap()

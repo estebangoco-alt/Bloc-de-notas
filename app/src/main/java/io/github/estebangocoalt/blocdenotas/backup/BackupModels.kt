@@ -1,6 +1,10 @@
 package io.github.estebangocoalt.blocdenotas.backup
 
+import io.github.estebangocoalt.blocdenotas.data.Priority
+import io.github.estebangocoalt.blocdenotas.data.RepeatRule
+import io.github.estebangocoalt.blocdenotas.data.TagLogic
 import io.github.estebangocoalt.blocdenotas.data.BoardColumnEntity
+import io.github.estebangocoalt.blocdenotas.data.BoardEntity
 import io.github.estebangocoalt.blocdenotas.data.ChecklistItemEntity
 import io.github.estebangocoalt.blocdenotas.data.NoteEntity
 import io.github.estebangocoalt.blocdenotas.data.NoteKind
@@ -21,6 +25,8 @@ data class BackupFile(
     val notes: List<BackupNote> = emptyList(),
     /** Columnas del tablero (campo opcional añadido sin cambiar la versión del formato). */
     val columns: List<BackupColumn> = emptyList(),
+    /** Tableros (uno por proyecto; campo opcional). Sin él, todas las columnas son del único tablero. */
+    val boards: List<BackupBoard> = emptyList(),
 )
 
 @Serializable
@@ -39,11 +45,24 @@ data class BackupNote(
     val columnPosition: Int = 0,
     val completedAt: Long? = null,
     val reminderMinute: Int? = null,
+    val repeat: String? = null,
+    val priority: Int = 0,
+    val tags: List<String> = emptyList(),
+    val parentId: String? = null,
+    val deletedAt: Long? = null,
     val items: List<BackupItem> = emptyList(),
 )
 
 @Serializable
 data class BackupColumn(
+    val id: String,
+    val title: String = "",
+    val position: Int = 0,
+    val boardId: String = "",
+)
+
+@Serializable
+data class BackupBoard(
     val id: String,
     val title: String = "",
     val position: Int = 0,
@@ -66,10 +85,12 @@ object BackupMapper {
         appVersion: String,
         exportedAt: Long,
         columns: List<BoardColumnEntity> = emptyList(),
+        boards: List<BoardEntity> = emptyList(),
     ): BackupFile = BackupFile(
         exportedAt = exportedAt,
         appVersion = appVersion,
-        columns = columns.map { BackupColumn(it.id, it.title, it.position) },
+        columns = columns.map { BackupColumn(it.id, it.title, it.position, it.boardId) },
+        boards = boards.map { BackupBoard(it.id, it.title, it.position) },
         notes = notes.map { note ->
             BackupNote(
                 id = note.id,
@@ -86,6 +107,11 @@ object BackupMapper {
                 columnPosition = note.columnPosition,
                 completedAt = note.completedAt,
                 reminderMinute = note.reminderMinute,
+                repeat = note.repeatRule,
+                priority = note.priority,
+                tags = TagLogic.parse(note.tags),
+                parentId = note.parentId,
+                deletedAt = note.deletedAt,
                 items = itemsByNote[note.id].orEmpty().sortedBy { it.position }.map { item ->
                     BackupItem(item.id, item.text, item.checked, item.position)
                 },
@@ -102,7 +128,15 @@ object BackupMapper {
         val seen = HashSet<String>()
         return file.columns
             .filter { it.id.isNotBlank() && seen.add(it.id) }
-            .map { BoardColumnEntity(id = it.id, title = it.title, position = it.position) }
+            .map { BoardColumnEntity(id = it.id, title = it.title, position = it.position, boardId = it.boardId) }
+    }
+
+    /** Tableros de la copia, sin ids vacíos ni repetidos. */
+    fun boardsOf(file: BackupFile): List<BoardEntity> {
+        val seen = HashSet<String>()
+        return file.boards
+            .filter { it.id.isNotBlank() && seen.add(it.id) }
+            .map { BoardEntity(id = it.id, title = it.title, position = it.position) }
     }
 
     fun toEntities(file: BackupFile): Pair<List<NoteEntity>, List<ChecklistItemEntity>> {
@@ -128,6 +162,11 @@ object BackupMapper {
                 columnPosition = n.columnPosition,
                 completedAt = n.completedAt,
                 reminderMinute = n.reminderMinute?.takeIf { it in 0..1439 },
+                priority = Priority.clamp(n.priority),
+                tags = TagLogic.join(n.tags),
+                parentId = n.parentId?.takeIf { it.isNotBlank() && it != n.id },
+                deletedAt = n.deletedAt,
+                repeatRule = RepeatRule.fromName(n.repeat).takeIf { it != RepeatRule.NONE }?.name,
             )
             for (i in n.items) {
                 // Si el id del elemento falta o ya existe en otra nota, se genera uno nuevo.

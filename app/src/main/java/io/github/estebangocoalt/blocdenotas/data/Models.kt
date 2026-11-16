@@ -44,17 +44,39 @@ data class NoteEntity(
     val completedAt: Long? = null,
     /** Hora del recordatorio (minutos desde las 00:00, hora local) el día de la fecha límite. null = sin aviso. */
     val reminderMinute: Int? = null,
+    /** Repetición de la tarea (nombre de [RepeatRule]). null = no se repite. */
+    val repeatRule: String? = null,
+    /** Prioridad de la tarea: 0 = ninguna, 1 = baja, 2 = media, 3 = alta (ver [Priority]). */
+    @ColumnInfo(defaultValue = "0") val priority: Int = 0,
+    /** Etiquetas separadas por comas (ver [TagLogic]). */
+    @ColumnInfo(defaultValue = "''") val tags: String = "",
+    /** Subpágina: id de la nota que la contiene. null = nota de primer nivel. */
+    val parentId: String? = null,
+    /** Cuándo se envió a la papelera. null = no está en la papelera. */
+    val deletedAt: Long? = null,
     /** Columna del tablero donde está la tarjeta (solo tareas). null = primera columna. */
     val columnId: String? = null,
     @ColumnInfo(defaultValue = "0") val columnPosition: Int = 0,
 )
 
-/** Columna del tablero estilo Trello. */
+/** Un tablero (uno por proyecto). Los tableros se ordenan por [position]. */
+@Entity(tableName = "boards")
+data class BoardEntity(
+    @PrimaryKey val id: String = UUID.randomUUID().toString(),
+    val title: String,
+    val position: Int = 0,
+)
+
+/**
+ * Columna del tablero estilo Trello. [boardId] vacío (columnas de versiones antiguas)
+ * o de un tablero que ya no existe significa «pertenece al primer tablero».
+ */
 @Entity(tableName = "board_columns")
 data class BoardColumnEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
     val title: String,
     val position: Int = 0,
+    @ColumnInfo(defaultValue = "''") val boardId: String = "",
 )
 
 @Entity(

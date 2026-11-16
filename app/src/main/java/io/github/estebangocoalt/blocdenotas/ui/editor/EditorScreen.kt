@@ -1,5 +1,23 @@
 package io.github.estebangocoalt.blocdenotas.ui.editor
 
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
+import io.github.estebangocoalt.blocdenotas.data.LinkLogic
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -73,135 +91,303 @@ import io.github.estebangocoalt.blocdenotas.ui.theme.NoteSwatch
 fun EditorScreen(
     onBack: () -> Unit,
     onShoppingMode: (String) -> Unit,
+    onOpenNote: (String) -> Unit,
+    onNewSubpage: (String) -> Unit,
     modifier: Modifier = Modifier,
     vm: EditorViewModel = viewModel(),
 ) {
     val swatch = NoteColors.at(vm.colorIndex)
     var confirmDelete by remember { mutableStateOf(false) }
+    var showDone by remember { mutableStateOf(true) }
+    val allNotes by vm.allNotes.collectAsStateWithLifecycle()
+    var bodyField by remember { mutableStateOf(TextFieldValue(vm.body)) }
+    var pickerMention by remember { mutableStateOf<Boolean?>(null) }
+
+    // El cuerpo se carga después de abrir la pantalla: mantiene el campo de texto al día.
+    LaunchedEffect(vm.body) {
+        if (bodyField.text != vm.body) bodyField = TextFieldValue(vm.body, TextRange(vm.body.length))
+    }
+    fun setBody(text: String) {
+        bodyField = TextFieldValue(text, TextRange(text.length))
+        vm.body = text
+    }
+    fun openNote(id: String) {
+        vm.saveOnExit()
+        onOpenNote(id)
+    }
 
     // Guardado automático: al salir de la pantalla y cuando la app pasa a segundo plano.
     DisposableEffect(Unit) { onDispose { vm.saveOnExit() } }
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) { vm.saveOnExit() }
 
-    Surface(
-        modifier = modifier.fillMaxSize(),
-        color = swatch.background,
-        contentColor = swatch.content,
+    // Los chips, botones y campos usan los colores de la nota, no los del tema: así se leen
+    // igual en claro y en oscuro (antes salía texto claro sobre el fondo pastel).
+    MaterialTheme(
+        colorScheme = MaterialTheme.colorScheme.copy(
+            surface = swatch.background,
+            background = swatch.background,
+            onSurface = swatch.content,
+            onBackground = swatch.content,
+            onSurfaceVariant = swatch.content.copy(alpha = 0.75f),
+            outline = swatch.content.copy(alpha = 0.45f),
+            outlineVariant = swatch.content.copy(alpha = 0.25f),
+            primary = swatch.accent,
+            secondaryContainer = swatch.accent.copy(alpha = 0.18f),
+            onSecondaryContainer = swatch.content,
+            surfaceVariant = swatch.content.copy(alpha = 0.08f),
+        ),
     ) {
-        Column(
-            Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .imePadding(),
+        Surface(
+            modifier = modifier.fillMaxSize(),
+            color = swatch.background,
+            contentColor = swatch.content,
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
-                }
-                Spacer(Modifier.weight(1f))
-                if (vm.kind == NoteKind.SHOPPING) {
-                    IconButton(onClick = {
-                        vm.saveOnExit()
-                        onShoppingMode(vm.currentId)
-                    }) {
-                        Icon(Icons.Default.ShoppingCart, contentDescription = stringResource(R.string.shopping_mode))
-                    }
-                }
-                IconButton(onClick = { vm.pinned = !vm.pinned }) {
-                    Icon(
-                        Icons.Default.Star,
-                        contentDescription = stringResource(if (vm.pinned) R.string.cd_unpin else R.string.cd_pin),
-                        tint = if (vm.pinned) swatch.accent else swatch.content.copy(alpha = 0.4f),
-                    )
-                }
-                IconButton(onClick = { confirmDelete = true }) {
-                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.cd_delete))
-                }
-            }
-
             Column(
                 Modifier
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 12.dp),
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .navigationBarsPadding()
+                    .imePadding(),
             ) {
                 Row(
-                    modifier = Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    NoteKind.entries.forEach { option ->
-                        FilterChip(
-                            selected = vm.kind == option,
-                            onClick = { vm.changeKind(option) },
-                            label = { Text(stringResource(option.labelRes())) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                labelColor = swatch.content,
-                                selectedLabelColor = swatch.content,
-                                selectedContainerColor = Color.White.copy(alpha = 0.6f),
-                            ),
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_back))
+                    }
+                    Spacer(Modifier.weight(1f))
+                    if (vm.kind == NoteKind.SHOPPING) {
+                        IconButton(onClick = {
+                            vm.saveOnExit()
+                            onShoppingMode(vm.currentId)
+                        }) {
+                            Icon(Icons.Default.ShoppingCart, contentDescription = stringResource(R.string.shopping_mode))
+                        }
+                    }
+                    IconButton(onClick = { vm.pinned = !vm.pinned }) {
+                        Icon(
+                            Icons.Default.Star,
+                            contentDescription = stringResource(if (vm.pinned) R.string.cd_unpin else R.string.cd_pin),
+                            tint = if (vm.pinned) swatch.accent else swatch.content.copy(alpha = 0.4f),
                         )
                     }
-                }
-
-                if (vm.kind == NoteKind.TASK) {
-                    TaskOptions(
-                        dueAt = vm.dueAt,
-                        completed = vm.completed,
-                        swatch = swatch,
-                        onCompletedChange = { vm.completed = it },
-                        onDueChange = {
-                            vm.dueAt = it
-                            if (it == null) vm.reminderMinute = null
-                        },
-                        reminderMinute = vm.reminderMinute,
-                        onReminderChange = { vm.reminderMinute = it },
-                    )
-                }
-
-                NoteField(
-                    value = vm.title,
-                    onValueChange = { vm.title = it },
-                    hint = stringResource(R.string.editor_title_hint),
-                    textStyle = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                    swatch = swatch,
-                )
-                NoteField(
-                    value = vm.body,
-                    onValueChange = { vm.body = it },
-                    hint = stringResource(R.string.editor_body_hint),
-                    textStyle = MaterialTheme.typography.bodyLarge,
-                    swatch = swatch,
-                )
-
-                vm.items.forEach { item ->
-                    key(item.id) {
-                        ItemRow(item = item, swatch = swatch, onRemove = { vm.removeItem(item) })
+                    IconButton(onClick = { confirmDelete = true }) {
+                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.cd_delete))
                     }
                 }
 
-                TextButton(
-                    onClick = vm::addItem,
-                    colors = ButtonDefaults.textButtonColors(contentColor = swatch.accent),
+                Column(
+                    Modifier
+                        .weight(1f)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 12.dp),
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.editor_add_item))
-                }
+                    allNotes.firstOrNull { it.id == vm.parentId }?.let { parent ->
+                        ParentChip(parent, swatch, onOpen = ::openNote)
+                    }
+                    Row(
+                        modifier = Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        NoteKind.entries.forEach { option ->
+                            FilterChip(
+                                selected = vm.kind == option,
+                                onClick = { vm.changeKind(option) },
+                                label = { Text(stringResource(option.labelRes())) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    labelColor = swatch.content,
+                                    selectedLabelColor = swatch.content,
+                                    selectedContainerColor = Color.White.copy(alpha = 0.6f),
+                                ),
+                            )
+                        }
+                    }
 
+                    val knownTags by vm.knownTags.collectAsStateWithLifecycle()
+                    TagEditor(
+                        tags = io.github.estebangocoalt.blocdenotas.data.TagLogic.parse(vm.tags),
+                        known = knownTags,
+                        onAdd = { vm.tags = io.github.estebangocoalt.blocdenotas.data.TagLogic.add(vm.tags, it) },
+                        onRemove = { vm.tags = io.github.estebangocoalt.blocdenotas.data.TagLogic.remove(vm.tags, it) },
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+
+                    if (vm.kind == NoteKind.TASK) {
+                        TaskOptions(
+                            dueAt = vm.dueAt,
+                            completed = vm.completed,
+                            swatch = swatch,
+                            onCompletedChange = { vm.completed = it },
+                            onDueChange = {
+                                vm.dueAt = it
+                                if (it == null) {
+                                    vm.reminderMinute = null
+                                    vm.repeatRule = io.github.estebangocoalt.blocdenotas.data.RepeatRule.NONE
+                                }
+                            },
+                            reminderMinute = vm.reminderMinute,
+                            onReminderChange = { vm.reminderMinute = it },
+                            repeatRule = vm.repeatRule,
+                            onRepeatChange = { vm.repeatRule = it },
+                            priority = vm.priority,
+                            onPriorityChange = { vm.priority = it },
+                        )
+                    }
+
+                    NoteField(
+                        value = vm.title,
+                        onValueChange = { vm.title = it },
+                        hint = stringResource(R.string.editor_title_hint),
+                        textStyle = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                        swatch = swatch,
+                    )
+                    TextField(
+                        value = bodyField,
+                        onValueChange = {
+                            bodyField = it
+                            vm.body = it.text
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        textStyle = MaterialTheme.typography.bodyLarge,
+                        placeholder = {
+                            Text(stringResource(R.string.editor_body_hint), style = MaterialTheme.typography.bodyLarge)
+                        },
+                        colors = noteFieldColors(swatch),
+                    )
+
+                    // Comandos «/»: aparecen al escribir «/» al final del texto.
+                    val slash = LinkLogic.slashQuery(vm.body)
+                    val commands = SlashCommand.entries
+                        .map { it to stringResource(it.label) }
+                        .filter { (_, label) -> slash != null && label.contains(slash, ignoreCase = true) }
+                    if (slash != null && commands.isNotEmpty()) {
+                        Column(
+                            Modifier
+                                .padding(horizontal = 4.dp, vertical = 4.dp)
+                                .fillMaxWidth()
+                                .clip(androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+                                .background(Color.White.copy(alpha = 0.6f)),
+                        ) {
+                            commands.take(6).forEach { (command, label) ->
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            val base = LinkLogic.removeSlash(vm.body)
+                                            val lineStart = base.isEmpty() || base.endsWith("\n")
+                                            when (command) {
+                                                SlashCommand.TODO -> {
+                                                    setBody(base)
+                                                    vm.addItem()
+                                                }
+                                                SlashCommand.HEADING -> setBody("$base# ")
+                                                SlashCommand.BULLETS -> setBody("$base- ")
+                                                SlashCommand.QUOTE -> setBody("$base> ")
+                                                SlashCommand.DIVIDER ->
+                                                    setBody(base + (if (lineStart) "" else "\n") + "---\n")
+                                                SlashCommand.DATE -> setBody(
+                                                    base + LocalDate.now()
+                                                        .format(DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)),
+                                                )
+                                                SlashCommand.TIME -> setBody(
+                                                    base + LocalTime.now()
+                                                        .format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
+                                                )
+                                                SlashCommand.LINK -> {
+                                                    setBody(base)
+                                                    pickerMention = false
+                                                }
+                                                SlashCommand.MENTION -> {
+                                                    setBody(base)
+                                                    pickerMention = true
+                                                }
+                                                SlashCommand.SUBPAGE -> {
+                                                    setBody(base)
+                                                    vm.prepareForSubpage()
+                                                    onNewSubpage(vm.currentId)
+                                                }
+                                            }
+                                        }
+                                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                                )
+                            }
+                        }
+                    }
+
+                    vm.items.filter { !it.checked }.forEach { item ->
+                        key(item.id) {
+                            ItemRow(item = item, swatch = swatch, onRemove = { vm.removeItem(item) })
+                        }
+                    }
+
+                    TextButton(
+                        onClick = vm::addItem,
+                        colors = ButtonDefaults.textButtonColors(contentColor = swatch.accent),
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.editor_add_item))
+                    }
+
+                    val doneItems = vm.items.filter { it.checked }
+                    if (doneItems.isNotEmpty()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { showDone = !showDone }
+                                .padding(horizontal = 12.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                if (showDone) Icons.Default.KeyboardArrowDown else Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = null,
+                                tint = swatch.accent,
+                            )
+                            Text(
+                                text = stringResource(R.string.editor_completed, doneItems.size),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = swatch.accent,
+                                modifier = Modifier.padding(start = 8.dp),
+                            )
+                        }
+                        if (showDone) {
+                            doneItems.forEach { item ->
+                                key(item.id) {
+                                    ItemRow(item = item, swatch = swatch, onRemove = { vm.removeItem(item) })
+                                }
+                            }
+                        }
+                    }
+
+
+                    NoteRelations(
+                        body = vm.body,
+                        currentId = vm.currentId,
+                        currentTitle = vm.title,
+                        all = allNotes,
+                        swatch = swatch,
+                        onOpen = ::openNote,
+                        onCreateLinked = { title -> vm.openLinked(title, onOpenNote) },
+                        onNewSubpage = {
+                            vm.prepareForSubpage()
+                            onNewSubpage(vm.currentId)
+                        },
+                    )
+                }
                 Row(
-                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth().background(Color.White.copy(alpha = 0.35f)).padding(horizontal = 16.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     NoteColors.all.forEachIndexed { index, option ->
                         val selected = vm.colorIndex == index
                         val description = stringResource(R.string.cd_color, index + 1)
                         androidx.compose.foundation.layout.Box(
                             Modifier
-                                .size(44.dp)
+                                .size(36.dp)
                                 .clip(CircleShape)
                                 .background(option.background)
                                 .border(
@@ -216,6 +402,54 @@ fun EditorScreen(
                 }
             }
         }
+    }
+
+    pickerMention?.let { mention ->
+        var filter by remember { mutableStateOf("") }
+        val candidates = allNotes.filter {
+            it.id != vm.currentId && it.title.isNotBlank() && it.title.contains(filter, ignoreCase = true)
+        }
+        AlertDialog(
+            onDismissRequest = { pickerMention = null },
+            title = { Text(stringResource(if (mention) R.string.slash_mention else R.string.note_picker_title)) },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = filter,
+                        onValueChange = { filter = it },
+                        singleLine = true,
+                        label = { Text(stringResource(R.string.search_hint)) },
+                    )
+                    if (candidates.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.note_picker_empty),
+                            modifier = Modifier.padding(top = 12.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                    LazyColumn(Modifier.heightIn(max = 280.dp).padding(top = 8.dp)) {
+                        items(candidates.take(40), key = { it.id }) { note ->
+                            Text(
+                                text = note.title,
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        val prefix = if (mention) "@" else ""
+                                        setBody(vm.body + prefix + LinkLogic.link(note.title) + " ")
+                                        pickerMention = null
+                                    }
+                                    .padding(vertical = 12.dp),
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { pickerMention = null }) { Text(stringResource(R.string.action_cancel)) }
+            },
+        )
     }
 
     if (confirmDelete) {
@@ -247,20 +481,31 @@ private fun ItemRow(item: EditItem, swatch: NoteSwatch, onRemove: () -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Checkbox(
-            checked = item.checked,
-            onCheckedChange = { item.checked = it },
-            colors = CheckboxDefaults.colors(
-                checkedColor = swatch.accent,
-                uncheckedColor = swatch.accent,
-                checkmarkColor = swatch.background,
-            ),
-        )
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 12.dp)
+                .size(28.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .then(
+                    if (item.checked) {
+                        Modifier.background(swatch.accent)
+                    } else {
+                        Modifier.border(2.dp, swatch.accent, RoundedCornerShape(8.dp))
+                    },
+                )
+                .clickable { item.checked = !item.checked },
+            contentAlignment = Alignment.Center,
+        ) {
+            if (item.checked) {
+                Icon(Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+            }
+        }
         TextField(
             value = item.text,
             onValueChange = { item.text = it },
             modifier = Modifier.weight(1f),
             textStyle = MaterialTheme.typography.bodyLarge.copy(
+                fontWeight = FontWeight.Medium,
                 textDecoration = if (item.checked) TextDecoration.LineThrough else null,
             ),
             placeholder = { Text(stringResource(R.string.editor_item_hint)) },

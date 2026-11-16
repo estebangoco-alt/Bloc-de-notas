@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Icono A: nota con líneas y un check ámbar. Todo dentro de la zona segura (66 dp centrales). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
@@ -6,8 +7,17 @@
     android:viewportHeight="108">
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M36,30h26l10,10v38H36z" />
+        android:pathData="M40,27h28a7,7 0 0 1 7,7v40a7,7 0 0 1 -7,7H40a7,7 0 0 1 -7,-7V34a7,7 0 0 1 7,-7z" />
     <path
         android:fillColor="#0B6E63"
-        android:pathData="M42,52h24v3H42z M42,60h24v3H42z M42,68h16v3H42z" />
+        android:pathData="M40,37h24a2,2 0 0 1 2,2a2,2 0 0 1 -2,2H40a2,2 0 0 1 -2,-2a2,2 0 0 1 2,-2z M40,46h24a2,2 0 0 1 2,2a2,2 0 0 1 -2,2H40a2,2 0 0 1 -2,-2a2,2 0 0 1 2,-2z M40,55h14a2,2 0 0 1 2,2a2,2 0 0 1 -2,2H40a2,2 0 0 1 -2,-2a2,2 0 0 1 2,-2z" />
+    <path
+        android:fillColor="#F2B33D"
+        android:pathData="M69,58m-14,0a14,14 0 1,1 28,0a14,14 0 1,1 -28,0" />
+    <path
+        android:pathData="M62,58.5l5,5l9,-10"
+        android:strokeColor="#0B3D38"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
 </vector>

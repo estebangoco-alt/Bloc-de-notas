@@ -1,5 +1,6 @@
 package io.github.estebangocoalt.blocdenotas.backup
 
+import io.github.estebangocoalt.blocdenotas.R
 import android.content.Context
 import android.net.Uri
 import io.github.estebangocoalt.blocdenotas.data.ImportResult
@@ -29,6 +30,16 @@ class BackupManager(
         file.notes.size
     }
 
+    /** Escribe un ZIP con un archivo .md por nota en [uri]. Devuelve cuántas notas se han exportado. */
+    suspend fun exportMarkdown(uri: Uri): Int = withContext(Dispatchers.IO) {
+        val (notes, items) = repository.allForExport()
+        val files = MarkdownExport.files(notes, items, context.getString(R.string.board_untitled))
+        val stream = context.contentResolver.openOutputStream(uri, "wt")
+            ?: throw IOException("No se pudo abrir el archivo de destino")
+        stream.use { it.write(MarkdownExport.pack(files)) }
+        files.size
+    }
+
     /** Lee la copia de [uri] y la aplica según [mode]. */
     suspend fun import(uri: Uri, mode: ImportMode): ImportResult = withContext(Dispatchers.IO) {
         val stream = context.contentResolver.openInputStream(uri)
@@ -46,5 +57,7 @@ class BackupManager(
 
     companion object {
         fun suggestedFileName(): String = "bloc-de-notas-${LocalDate.now()}.zip"
+
+        fun suggestedMarkdownFileName(): String = "bloc-de-notas-markdown-${LocalDate.now()}.zip"
     }
 }

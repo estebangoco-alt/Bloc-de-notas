@@ -34,11 +34,11 @@ Las fases se pueden reordenar según lo que aprendamos. Nada de esto está imple
 - [ ] Calendario y agenda
 - [ ] Tareas con repetición
 - [ ] Vistas guardadas, propiedades personalizadas
-- [ ] Enlaces entre notas, menciones y subpáginas
-- [ ] Comandos con `/`
-- [ ] Widgets de lista, agenda y notas fijadas
-- [ ] Bloqueo con huella y papelera
-- [ ] Exportar a Markdown y JSON
+- [x] Enlaces entre notas, menciones y subpáginas
+- [x] Comandos con `/`
+- [x] Widgets de lista, agenda y notas fijadas
+- [x] Bloqueo con huella y papelera
+- [x] Exportar a Markdown y JSON
 
 ## Fase 4: ideas para después
 - [ ] Sincronización opcional (WebDAV / Nextcloud / Syncthing)

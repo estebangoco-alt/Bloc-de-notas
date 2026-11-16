@@ -1,5 +1,9 @@
 package io.github.estebangocoalt.blocdenotas.ui.inbox
 
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.text.font.FontWeight
+import io.github.estebangocoalt.blocdenotas.ui.theme.NoteColors
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,7 +34,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -104,7 +107,7 @@ private fun InboxCard(
     onDelete: () -> Unit,
 ) {
     Card(
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -129,9 +132,16 @@ private fun InboxCard(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 listOf(NoteKind.NOTE, NoteKind.TASK, NoteKind.IDEA, NoteKind.SHOPPING).forEach { kind ->
+                    val swatch = NoteColors.at(kind.defaultColor)
                     AssistChip(
                         onClick = { onClassify(kind) },
-                        label = { Text(stringResource(kind.labelRes())) },
+                        label = { Text(stringResource(kind.labelRes()), fontWeight = FontWeight.SemiBold) },
+                        shape = CircleShape,
+                        border = null,
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = swatch.background,
+                            labelColor = swatch.content,
+                        ),
                     )
                 }
             }

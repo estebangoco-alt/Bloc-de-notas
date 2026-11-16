@@ -1,6 +1,15 @@
 package io.github.estebangocoalt.blocdenotas.ui.calendar
 
+import io.github.estebangocoalt.blocdenotas.ui.common.SettingsButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.foundation.background
+import io.github.estebangocoalt.blocdenotas.data.Santoral
+import io.github.estebangocoalt.blocdenotas.data.HolidayLogic
+import io.github.estebangocoalt.blocdenotas.blocApp
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -63,6 +72,7 @@ import java.util.Locale
 fun CalendarScreen(
     onOpenTask: (String) -> Unit,
     onNewTask: (dueAt: Long) -> Unit,
+    onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier,
     vm: TasksViewModel = viewModel(),
 ) {
@@ -71,6 +81,7 @@ fun CalendarScreen(
     // Se guardan como días desde 1970 para que sobrevivan a rotar la pantalla.
     var monthStart by rememberSaveable { mutableStateOf(today.withDayOfMonth(1).toEpochDay()) }
     var selected by rememberSaveable { mutableStateOf(today.toEpochDay()) }
+    var agenda by rememberSaveable { mutableStateOf(false) }
 
     val locale = Locale.getDefault()
     val month = YearMonth.from(LocalDate.ofEpochDay(monthStart))
@@ -80,13 +91,74 @@ fun CalendarScreen(
     val byId = remember(tasks) { tasks.associateBy { it.note.id } }
     val todayDay = today.toEpochDay()
 
+    // Festivos y santoral (sin internet): según la zona y el interruptor de Ajustes.
+    val calendarPrefs = LocalContext.current.blocApp.calendarPrefs
+    val region by calendarPrefs.region.collectAsStateWithLifecycle()
+    val showSaints by calendarPrefs.showSaints.collectAsStateWithLifecycle()
+    val holidays = remember(region, month) {
+        HolidayLogic.holidays(region, listOf(month.year - 1, month.year, month.year + 1))
+    }
+    val english = locale.language == "en"
+
+    // Deslizar a izquierda o derecha en la vista de mes cambia de mes.
+    val swipeToChangeMonth = Modifier.pointerInput(agenda) {
+        if (agenda) return@pointerInput
+        var total = 0f
+        detectHorizontalDragGestures(
+            onDragStart = { total = 0f },
+            onDragEnd = {
+                val shown = YearMonth.from(LocalDate.ofEpochDay(monthStart))
+                when {
+                    total <= -SWIPE_THRESHOLD -> monthStart = shown.plusMonths(1).atDay(1).toEpochDay()
+                    total >= SWIPE_THRESHOLD -> monthStart = shown.minusMonths(1).atDay(1).toEpochDay()
+                }
+            },
+            onDragCancel = { total = 0f },
+            onHorizontalDrag = { _, amount -> total += amount },
+        )
+    }
+
     Box(modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize().statusBarsPadding()) {
+        Column(Modifier.fillMaxSize().statusBarsPadding().then(swipeToChangeMonth)) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                listOf(false to R.string.view_month, true to R.string.view_agenda).forEach { (isAgenda, label) ->
+                    FilterChip(
+                        selected = agenda == isAgenda,
+                        onClick = { agenda = isAgenda },
+                        label = { Text(stringResource(label)) },
+                        shape = CircleShape,
+                        border = null,
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                        ),
+                    )
+                }
+                Spacer(Modifier.weight(1f))
+                SettingsButton(onOpenSettings)
+            }
+            if (agenda) {
+                AgendaList(
+                    tasks = tasks,
+                    todayDay = todayDay,
+                    locale = locale,
+                    onOpenTask = onOpenTask,
+                    onToggle = { id, done -> vm.setCompleted(id, done) },
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                )
+            } else {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, top = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                IconButton(onClick = { monthStart = month.minusMonths(1).atDay(1).toEpochDay() }) {
+                IconButton(
+                    onClick = { monthStart = month.minusMonths(1).atDay(1).toEpochDay() },
+                    modifier = Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant),
+                ) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_prev_month))
                 }
                 Text(
@@ -97,7 +169,10 @@ fun CalendarScreen(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f),
                 )
-                IconButton(onClick = { monthStart = month.plusMonths(1).atDay(1).toEpochDay() }) {
+                IconButton(
+                    onClick = { monthStart = month.plusMonths(1).atDay(1).toEpochDay() },
+                    modifier = Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant),
+                ) {
                     Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = stringResource(R.string.cd_next_month))
                 }
                 TextButton(onClick = {
@@ -130,13 +205,17 @@ fun CalendarScreen(
                                 inMonth = YearMonth.from(date) == month,
                                 isToday = day == todayDay,
                                 isSelected = day == selected,
+                                isHoliday = holidays.containsKey(date),
                                 marker = when {
                                     dayTasks.isEmpty() -> Marker.NONE
                                     dayTasks.all { it.completedAt != null } -> Marker.DONE
                                     day < todayDay -> Marker.OVERDUE
                                     else -> Marker.PENDING
                                 },
-                                onClick = { selected = day },
+                                onClick = {
+                                    selected = day
+                                    monthStart = date.withDayOfMonth(1).toEpochDay()
+                                },
                                 modifier = Modifier.weight(1f),
                             )
                         }
@@ -152,6 +231,27 @@ fun CalendarScreen(
                 modifier = Modifier.padding(start = 20.dp, top = 16.dp, end = 20.dp, bottom = 4.dp),
             )
 
+            val selectedDate = LocalDate.ofEpochDay(selected)
+            val holiday = holidays[selectedDate]
+            val saint = if (showSaints) Santoral.of(selectedDate) else null
+            if (holiday != null) {
+                Text(
+                    text = stringResource(R.string.calendar_holiday, if (english) holiday.en else holiday.es),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                )
+            }
+            if (saint != null) {
+                Text(
+                    text = stringResource(R.string.calendar_saint, saint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                )
+            }
+
             val dayTasks: List<NoteWithItems> = byDay[selected].orEmpty().mapNotNull { byId[it.id] }
             if (dayTasks.isEmpty()) {
                 Text(
@@ -164,6 +264,7 @@ fun CalendarScreen(
             LazyColumn(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 contentPadding = PaddingValues(bottom = 96.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(dayTasks, key = { it.note.id }) { task ->
                     TaskRow(
@@ -174,16 +275,23 @@ fun CalendarScreen(
                     )
                 }
             }
+            }
         }
 
         ExtendedFloatingActionButton(
             onClick = { onNewTask(TaskLogic.dueAtOfDay(selected)) },
             icon = { Icon(Icons.Default.Add, contentDescription = null) },
-            text = { Text(stringResource(R.string.fab_new)) },
+            text = { Text(stringResource(R.string.fab_new), fontWeight = FontWeight.SemiBold) },
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
+            shape = CircleShape,
             modifier = Modifier.align(Alignment.BottomEnd).padding(20.dp),
         )
     }
 }
+
+/** Cuánto hay que deslizar (en píxeles) para cambiar de mes. */
+private const val SWIPE_THRESHOLD = 120f
 
 private enum class Marker { NONE, PENDING, OVERDUE, DONE }
 
@@ -193,6 +301,7 @@ private fun DayCell(
     inMonth: Boolean,
     isToday: Boolean,
     isSelected: Boolean,
+    isHoliday: Boolean,
     marker: Marker,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -200,6 +309,8 @@ private fun DayCell(
     val scheme = MaterialTheme.colorScheme
     val textColor = when {
         isSelected -> scheme.onPrimary
+        isHoliday && inMonth -> scheme.error
+        isHoliday -> scheme.error.copy(alpha = 0.45f)
         inMonth -> scheme.onSurface
         else -> scheme.onSurface.copy(alpha = 0.35f)
     }
@@ -224,7 +335,7 @@ private fun DayCell(
                 text = date.dayOfMonth.toString(),
                 style = MaterialTheme.typography.bodyMedium,
                 color = textColor,
-                fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+                fontWeight = if (isToday || isHoliday) FontWeight.Bold else FontWeight.Normal,
             )
             if (marker == Marker.NONE) {
                 Spacer(Modifier.size(6.dp))
@@ -233,4 +344,90 @@ private fun DayCell(
             }
         }
     }
+}
+
+/** Vista de agenda: tareas vencidas y próximas, agrupadas por día. */
+@Composable
+private fun AgendaList(
+    tasks: List<NoteWithItems>,
+    todayDay: Long,
+    locale: Locale,
+    onOpenTask: (String) -> Unit,
+    onToggle: (String, Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val dated = remember(tasks) { tasks.filter { it.note.dueAt != null } }
+    val order = compareBy<NoteWithItems>({ it.note.reminderMinute ?: -1 }, { it.note.title })
+    val overdue = remember(dated, todayDay) {
+        dated.filter { TaskLogic.dayOf(it.note.dueAt!!) < todayDay && it.note.completedAt == null }
+            .sortedWith(compareBy<NoteWithItems> { it.note.dueAt }.then(order))
+    }
+    val days = remember(dated, todayDay) {
+        dated.filter { TaskLogic.dayOf(it.note.dueAt!!) >= todayDay }
+            .groupBy { TaskLogic.dayOf(it.note.dueAt!!) }
+            .toSortedMap()
+            .mapValues { (_, list) -> list.sortedWith(order) }
+    }
+    val dayFormat = remember(locale) { DateTimeFormatter.ofPattern("EEEE, d MMMM", locale) }
+
+    if (overdue.isEmpty() && days.isEmpty()) {
+        Text(
+            text = stringResource(R.string.agenda_empty),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = modifier.padding(20.dp),
+        )
+        return
+    }
+
+    LazyColumn(
+        modifier = modifier,
+        contentPadding = PaddingValues(bottom = 96.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        if (overdue.isNotEmpty()) {
+            item(key = "h-overdue") {
+                AgendaHeader(stringResource(R.string.agenda_overdue), MaterialTheme.colorScheme.error)
+            }
+            items(overdue, key = { "o-" + it.note.id }) { task ->
+                TaskRow(
+                    task = task,
+                    overdue = true,
+                    onToggle = { done -> onToggle(task.note.id, done) },
+                    onOpen = { onOpenTask(task.note.id) },
+                )
+            }
+        }
+        days.forEach { (day, list) ->
+            item(key = "h-$day") {
+                val date = LocalDate.ofEpochDay(day)
+                val text = date.format(dayFormat).replaceFirstChar { it.titlecase(locale) }
+                val label = when (day) {
+                    todayDay -> stringResource(R.string.agenda_today, text)
+                    todayDay + 1 -> stringResource(R.string.agenda_tomorrow, text)
+                    else -> text
+                }
+                AgendaHeader(label, MaterialTheme.colorScheme.primary)
+            }
+            items(list, key = { "d-$day-" + it.note.id }) { task ->
+                TaskRow(
+                    task = task,
+                    overdue = false,
+                    onToggle = { done -> onToggle(task.note.id, done) },
+                    onOpen = { onOpenTask(task.note.id) },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AgendaHeader(text: String, color: Color) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleSmall,
+        fontWeight = FontWeight.SemiBold,
+        color = color,
+        modifier = Modifier.padding(start = 20.dp, top = 12.dp, end = 20.dp),
+    )
 }

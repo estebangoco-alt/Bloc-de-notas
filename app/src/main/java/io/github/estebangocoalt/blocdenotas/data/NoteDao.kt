@@ -9,14 +9,35 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 abstract class NoteDao {
 
-    @Query("SELECT * FROM notes WHERE inbox = 0 ORDER BY pinned DESC, updatedAt DESC")
+    @Query("SELECT * FROM notes WHERE inbox = 0 AND deletedAt IS NULL ORDER BY pinned DESC, updatedAt DESC")
     abstract fun observeNotes(): Flow<List<NoteEntity>>
 
-    @Query("SELECT * FROM notes WHERE inbox = 1 ORDER BY createdAt DESC")
+    @Query("SELECT * FROM notes WHERE inbox = 1 AND deletedAt IS NULL ORDER BY createdAt DESC")
     abstract fun observeInbox(): Flow<List<NoteEntity>>
 
-    @Query("SELECT COUNT(*) FROM notes WHERE inbox = 1")
+    @Query("SELECT COUNT(*) FROM notes WHERE inbox = 1 AND deletedAt IS NULL")
     abstract fun observeInboxCount(): Flow<Int>
+
+    @Query("SELECT * FROM notes WHERE deletedAt IS NOT NULL ORDER BY deletedAt DESC")
+    abstract fun observeTrash(): Flow<List<NoteEntity>>
+
+    @Query("UPDATE notes SET deletedAt = :stamp, updatedAt = :stamp WHERE id = :id")
+    abstract suspend fun trashNote(id: String, stamp: Long)
+
+    @Query("UPDATE notes SET deletedAt = NULL, updatedAt = :now WHERE id = :id")
+    abstract suspend fun restoreNote(id: String, now: Long)
+
+    @Query("SELECT id FROM notes WHERE parentId = :id AND deletedAt IS NULL")
+    abstract suspend fun liveChildIds(id: String): List<String>
+
+    @Query("SELECT id FROM notes WHERE parentId = :id AND deletedAt = :stamp")
+    abstract suspend fun trashedChildIds(id: String, stamp: Long): List<String>
+
+    @Query("DELETE FROM checklist_items WHERE noteId IN (SELECT id FROM notes WHERE deletedAt IS NOT NULL AND deletedAt < :before)")
+    abstract suspend fun purgeTrashItems(before: Long)
+
+    @Query("DELETE FROM notes WHERE deletedAt IS NOT NULL AND deletedAt < :before")
+    abstract suspend fun purgeTrashNotes(before: Long)
 
     @Query("SELECT * FROM checklist_items ORDER BY noteId, position")
     abstract fun observeItems(): Flow<List<ChecklistItemEntity>>
@@ -65,19 +86,55 @@ abstract class NoteDao {
     @Query("DELETE FROM board_columns")
     abstract suspend fun deleteAllColumns()
 
-    @Query("UPDATE notes SET columnId = NULL, columnPosition = 0 WHERE columnId = :id")
-    abstract suspend fun detachCards(id: String)
+    @Query("UPDATE notes SET columnId = :to, columnPosition = 0 WHERE columnId = :id")
+    abstract suspend fun detachCards(id: String, to: String?)
 
-    /** Borra la columna; sus tarjetas no se pierden: pasan a la primera columna. */
+    /** Borra la columna; sus tarjetas no se pierden: pasan a [to] (null = primera columna del primer tablero). */
     @Transaction
-    open suspend fun removeColumn(id: String) {
-        detachCards(id)
+    open suspend fun removeColumn(id: String, to: String?) {
+        detachCards(id, to)
         deleteColumnRow(id)
     }
 
-    /** Crea las columnas por defecto solo si todavía no hay ninguna. */
+    @Query("SELECT * FROM boards ORDER BY position, id")
+    abstract fun observeBoards(): Flow<List<BoardEntity>>
+
+    @Query("SELECT * FROM boards ORDER BY position, id")
+    abstract suspend fun allBoards(): List<BoardEntity>
+
+    @Query("SELECT COUNT(*) FROM boards")
+    abstract suspend fun boardCount(): Int
+
+    @Upsert
+    abstract suspend fun upsertBoards(boards: List<BoardEntity>)
+
+    @Query("DELETE FROM boards")
+    abstract suspend fun deleteAllBoards()
+
+    @Query("DELETE FROM boards WHERE id = :id")
+    abstract suspend fun deleteBoardRow(id: String)
+
+    @Query("UPDATE notes SET columnId = NULL, columnPosition = 0 WHERE columnId IN (:ids)")
+    abstract suspend fun detachCardsIn(ids: List<String>)
+
+    @Query("DELETE FROM board_columns WHERE id IN (:ids)")
+    abstract suspend fun deleteColumnsIn(ids: List<String>)
+
+    /** Borra el tablero y sus columnas; las tarjetas no se pierden: pasan al primer tablero. */
     @Transaction
-    open suspend fun seedColumns(columns: List<BoardColumnEntity>) {
+    open suspend fun removeBoard(id: String, columnIds: List<String>) {
+        if (columnIds.isNotEmpty()) {
+            detachCardsIn(columnIds)
+            deleteColumnsIn(columnIds)
+        }
+        deleteBoardRow(id)
+    }
+
+    /** Crea el tablero por defecto (y sus columnas) solo si todavía no hay ningún tablero. */
+    @Transaction
+    open suspend fun seedBoard(board: BoardEntity, columns: List<BoardColumnEntity>) {
+        if (boardCount() > 0) return
+        upsertBoards(listOf(board))
         if (columnCount() == 0) upsertColumns(columns)
     }
 
@@ -92,6 +149,15 @@ abstract class NoteDao {
 
     @Query("DELETE FROM notes")
     abstract suspend fun deleteAllNotes()
+
+    @Query("DELETE FROM checklist_items WHERE noteId LIKE 'demo-%'")
+    abstract suspend fun deleteDemoItems()
+
+    @Query("DELETE FROM notes WHERE id LIKE 'demo-%'")
+    abstract suspend fun deleteDemoNotes()
+
+    @Query("SELECT COUNT(*) FROM notes WHERE id LIKE 'demo-%'")
+    abstract suspend fun demoCount(): Int
 
     @Transaction
     open suspend fun saveWithItems(note: NoteEntity, items: List<ChecklistItemEntity>) {
@@ -113,11 +179,14 @@ abstract class NoteDao {
         items: List<ChecklistItemEntity>,
         replace: Boolean,
         columns: List<BoardColumnEntity> = emptyList(),
+        boards: List<BoardEntity> = emptyList(),
     ): ImportResult {
         if (replace) {
             deleteAllNotes()
             deleteAllColumns()
+            deleteAllBoards()
         }
+        if (boards.isNotEmpty()) upsertBoards(boards)
         if (columns.isNotEmpty()) upsertColumns(columns)
         val local: Map<String, Long> =
             if (replace) emptyMap() else allStamps().associate { it.id to it.updatedAt }

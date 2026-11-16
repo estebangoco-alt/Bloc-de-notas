@@ -28,7 +28,7 @@ object ReminderLogic {
      * El día es el de la fecha límite (UTC, ver [TaskLogic]) y la hora es local.
      */
     fun triggerAt(note: NoteEntity, nowMillis: Long, zone: ZoneId): Long? {
-        if (note.kind != NoteKind.TASK || note.completedAt != null) return null
+        if (note.kind != NoteKind.TASK || note.completedAt != null || note.deletedAt != null) return null
         val due = note.dueAt ?: return null
         val minute = note.reminderMinute ?: return null
         if (minute !in 0..1439) return null

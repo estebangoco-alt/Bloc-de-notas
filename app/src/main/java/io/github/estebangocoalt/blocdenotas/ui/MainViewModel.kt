@@ -24,7 +24,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     val notes: StateFlow<List<NoteWithItems>> =
         combine(repository.notes, query, filter) { all, q, f ->
-            all.filter { matchesFilter(it, f) && matchesQuery(it, q) }
+            val ids = all.map { it.note.id }.toSet()
+            // Las subpáginas se ven dentro de su página; en la búsqueda aparecen todas.
+            all.filter {
+                matchesFilter(it, f) && matchesQuery(it, q) &&
+                    (q.isNotBlank() || it.note.parentId == null || it.note.parentId !in ids)
+            }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val inbox: StateFlow<List<NoteEntity>> =
@@ -40,6 +45,19 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     fun setFilter(value: NoteFilter) {
         filter.value = value
     }
+
+    private val store = app.blocApp.savedViews
+    val savedViews: StateFlow<List<io.github.estebangocoalt.blocdenotas.data.SavedView>> = store.views
+
+    /** Aplica una vista guardada (su filtro y su búsqueda). */
+    fun applyView(view: io.github.estebangocoalt.blocdenotas.data.SavedView) {
+        filter.value = NoteFilter.entries.firstOrNull { it.name == view.filter } ?: NoteFilter.ALL
+        query.value = view.query
+    }
+
+    fun saveCurrentView(name: String) = store.add(name, filter.value.name, query.value)
+
+    fun deleteView(id: String) = store.remove(id)
 
     fun classify(id: String, kind: NoteKind) {
         viewModelScope.launch { repository.classify(id, kind) }
@@ -63,6 +81,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         if (needle.isEmpty()) return true
         return item.note.title.contains(needle, ignoreCase = true) ||
             item.note.body.contains(needle, ignoreCase = true) ||
+            item.note.tags.contains(needle.trimStart('#'), ignoreCase = true) ||
             item.items.any { it.text.contains(needle, ignoreCase = true) }
     }
 }

@@ -40,6 +40,20 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun exportMarkdown(uri: Uri) {
+        viewModelScope.launch {
+            _busy.value = true
+            _message.value = try {
+                UiMessage(R.string.msg_export_md_ok, listOf(backup.exportMarkdown(uri)))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                errorMessage(e)
+            }
+            _busy.value = false
+        }
+    }
+
     fun import(uri: Uri, mode: ImportMode) {
         viewModelScope.launch {
             _busy.value = true
@@ -52,6 +66,32 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
                 errorMessage(e)
             }
             _busy.value = false
+        }
+    }
+
+    /** Activa o desactiva el bloqueo. Solo se puede activar si el móvil tiene huella o bloqueo de pantalla. */
+    fun setLockEnabled(enabled: Boolean) {
+        val app = getApplication<Application>()
+        if (enabled && !io.github.estebangocoalt.blocdenotas.lock.AppLock.isAvailable(app)) {
+            _message.value = UiMessage(R.string.msg_lock_unavailable)
+            return
+        }
+        app.blocApp.appLock.setEnabled(enabled)
+    }
+
+    fun loadDemo() {
+        viewModelScope.launch {
+            val spanish = java.util.Locale.getDefault().language == "es"
+            getApplication<Application>().blocApp.repository
+                .loadDemo(spanish, java.time.LocalDate.now().toEpochDay())
+            _message.value = UiMessage(R.string.msg_demo_loaded)
+        }
+    }
+
+    fun removeDemo() {
+        viewModelScope.launch {
+            getApplication<Application>().blocApp.repository.removeDemo()
+            _message.value = UiMessage(R.string.msg_demo_removed)
         }
     }
 

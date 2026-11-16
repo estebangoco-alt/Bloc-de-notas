@@ -20,9 +20,9 @@ class QuickCaptureActivity : ComponentActivity() {
             BlocTheme {
                 CaptureSheet(
                     onDismiss = { finish() },
-                    onSave = { text, destination ->
+                    onSave = { text, destination, priority ->
                         // El ámbito de la app sobrevive al cierre de esta actividad.
-                        repository.appScope.launch { repository.capture(text, destination) }
+                        repository.appScope.launch { repository.capture(text, destination, priority) }
                         Toast.makeText(this, R.string.capture_saved, Toast.LENGTH_SHORT).show()
                         finish()
                     },
