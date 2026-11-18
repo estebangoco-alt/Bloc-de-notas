@@ -34,9 +34,13 @@ object TaskLogic {
     }
 
     /** Agrupa y ordena las tareas. Solo incluye los grupos que tienen alguna. */
-    fun group(tasks: List<NoteEntity>, todayEpochDay: Long): Map<TaskBucket, List<NoteEntity>> {
+    fun group(
+        tasks: List<NoteEntity>,
+        todayEpochDay: Long,
+        sort: TaskSort = TaskSort.DATE,
+    ): Map<TaskBucket, List<NoteEntity>> {
         val byBucket = tasks.groupBy { bucket(it.dueAt, it.completedAt, todayEpochDay) }
-        val byDate = compareBy<NoteEntity> { it.dueAt ?: Long.MAX_VALUE }.thenBy { it.createdAt }
+        val byDate = TaskQueryLogic.comparator(sort)
         val doneOrder = compareByDescending<NoteEntity> { it.completedAt ?: 0L }
         val result = LinkedHashMap<TaskBucket, List<NoteEntity>>()
         for (bucket in TaskBucket.entries) {

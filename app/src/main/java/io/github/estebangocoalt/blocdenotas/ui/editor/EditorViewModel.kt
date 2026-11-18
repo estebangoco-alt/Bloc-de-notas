@@ -25,15 +25,21 @@ import androidx.lifecycle.viewModelScope
 import io.github.estebangocoalt.blocdenotas.blocApp
 import io.github.estebangocoalt.blocdenotas.data.ChecklistItemEntity
 import io.github.estebangocoalt.blocdenotas.data.NoteEntity
+import io.github.estebangocoalt.blocdenotas.data.AttachmentEntity
+import io.github.estebangocoalt.blocdenotas.data.AttachmentKind
+import io.github.estebangocoalt.blocdenotas.data.CustomTemplate
+import io.github.estebangocoalt.blocdenotas.data.CustomTemplateRef
 import io.github.estebangocoalt.blocdenotas.data.NoteKind
 import io.github.estebangocoalt.blocdenotas.data.TaskLogic
 import kotlinx.coroutines.launch
 import java.util.UUID
 
 /** Elemento de lista editable en pantalla. */
-class EditItem(val id: String, text: String, checked: Boolean) {
+class EditItem(val id: String, text: String, checked: Boolean, aisle: String = "") {
     var text by mutableStateOf(text)
     var checked by mutableStateOf(checked)
+    /** Pasillo elegido a mano (id de Aisle). Vacío = se deduce del nombre. */
+    var aisle by mutableStateOf(aisle)
 }
 
 /**
@@ -44,6 +50,8 @@ class EditorViewModel(app: Application, handle: SavedStateHandle) : AndroidViewM
     private val repository = app.blocApp.repository
     private val existingId: String? = handle["noteId"]
     private val template: NoteTemplate? = NoteTemplate.fromName(handle["template"])
+    private val customTemplate: CustomTemplate? =
+        CustomTemplateRef.idOf(handle["template"])?.let { app.blocApp.customTemplates.get(it) }
 
     private val id: String = existingId ?: UUID.randomUUID().toString()
     private var createdAt: Long = System.currentTimeMillis()
@@ -80,6 +88,39 @@ class EditorViewModel(app: Application, handle: SavedStateHandle) : AndroidViewM
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     val items = mutableStateListOf<EditItem>()
 
+    /** Imágenes y notas de voz de la nota (los archivos ya están en la app; la fila se guarda con la nota). */
+    val attachments = mutableStateListOf<AttachmentEntity>()
+    private val attachmentStore = app.blocApp.attachmentStore
+
+    /** Copia la imagen elegida a la app y la adjunta. [onFail] se llama si no se pudo leer. */
+    fun addImage(uri: android.net.Uri, onFail: () -> Unit) {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            val name = attachmentStore.saveImage(uri)
+            if (name == null) {
+                launch(kotlinx.coroutines.Dispatchers.Main) { onFail() }
+            } else {
+                launch(kotlinx.coroutines.Dispatchers.Main) {
+                    attachments += AttachmentEntity(
+                        noteId = id, kind = AttachmentKind.IMAGE.name, fileName = name,
+                        createdAt = System.currentTimeMillis(),
+                    )
+                }
+            }
+        }
+    }
+
+    fun addAudio(fileName: String, durationMs: Long) {
+        attachments += AttachmentEntity(
+            noteId = id, kind = AttachmentKind.AUDIO.name, fileName = fileName,
+            durationMs = durationMs, createdAt = System.currentTimeMillis(),
+        )
+    }
+
+    fun removeAttachment(attachment: AttachmentEntity) {
+        attachments.remove(attachment)
+        attachmentStore.delete(attachment.fileName)
+    }
+
     init {
         viewModelScope.launch {
             val existing = existingId?.let { repository.get(it) }
@@ -100,12 +141,17 @@ class EditorViewModel(app: Application, handle: SavedStateHandle) : AndroidViewM
                 priority = note.priority
                 tags = note.tags
                 parentId = note.parentId
-                existing.items.forEach { items += EditItem(it.id, it.text, it.checked) }
+                existing.items.forEach { items += EditItem(it.id, it.text, it.checked, it.aisle) }
+                attachments += repository.attachmentsOf(id)
                 lastSavedKey = stateKey()
             } else if (template != null) {
                 parentId = handle["parent"]
                 applyTemplate(template)
                 lastSavedKey = stateKey() // una plantilla sin tocar no se guarda al salir
+            } else if (customTemplate != null) {
+                parentId = handle["parent"]
+                applyCustomTemplate(customTemplate)
+                lastSavedKey = stateKey()
             } else if (kind == NoteKind.TASK) {
                 parentId = handle["parent"]
                 // Nueva tarea creada desde el calendario: ya viene con su fecha.
@@ -157,6 +203,30 @@ class EditorViewModel(app: Application, handle: SavedStateHandle) : AndroidViewM
         }
     }
 
+    private fun applyCustomTemplate(t: CustomTemplate) {
+        kind = t.noteKind
+        colorIndex = t.colorIndex.coerceIn(0, 5)
+        title = t.title
+        body = t.body
+        t.items.forEach { items += EditItem(UUID.randomUUID().toString(), it, false) }
+    }
+
+    /** Guarda lo escrito como plantilla propia (sin marcas de hecho ni fechas). */
+    fun saveAsTemplate(name: String) {
+        val clean = name.trim()
+        if (clean.isEmpty()) return
+        getApplication<Application>().blocApp.customTemplates.add(
+            CustomTemplate(
+                name = clean,
+                kind = kind.name,
+                title = title.trim(),
+                body = body.trim(),
+                items = items.map { it.text.trim() }.filter { it.isNotEmpty() },
+                colorIndex = colorIndex,
+            ),
+        )
+    }
+
     fun changeKind(newKind: NoteKind) {
         if (colorIndex == kind.defaultColor) colorIndex = newKind.defaultColor
         kind = newKind
@@ -197,7 +267,7 @@ class EditorViewModel(app: Application, handle: SavedStateHandle) : AndroidViewM
         lastSavedKey = key
 
         val cleanItems = items.filter { it.text.isNotBlank() }
-        val blank = title.isBlank() && body.isBlank() && cleanItems.isEmpty()
+        val blank = title.isBlank() && body.isBlank() && cleanItems.isEmpty() && attachments.isEmpty()
         val note = NoteEntity(
             id = id,
             title = title.trim(),
@@ -217,13 +287,21 @@ class EditorViewModel(app: Application, handle: SavedStateHandle) : AndroidViewM
             updatedAt = System.currentTimeMillis(),
         )
         val entities = cleanItems.mapIndexed { index, item ->
-            ChecklistItemEntity(id = item.id, noteId = id, text = item.text.trim(), checked = item.checked, position = index)
+            ChecklistItemEntity(
+                id = item.id, noteId = id, text = item.text.trim(), checked = item.checked,
+                position = index, aisle = if (kind == NoteKind.SHOPPING) item.aisle else "",
+            )
         }
+        val attachmentRows = attachments.mapIndexed { index, a -> a.copy(noteId = id, position = index) }
         repository.appScope.launch {
-            if (blank) repository.deletePermanently(id) else repository.save(note, entities)
+            if (blank) {
+                repository.deletePermanently(id)
+            } else {
+                repository.save(note, entities, attachmentRows)
+            }
         }
     }
 
     private fun stateKey(): String =
-        listOf(title, body, kind, colorIndex, pinned, dueAt, completed, reminderMinute, repeatRule, priority, tags, parentId, items.map { Triple(it.id, it.text, it.checked) }).toString()
+        listOf(title, body, kind, colorIndex, pinned, dueAt, completed, reminderMinute, repeatRule, priority, tags, parentId, items.map { listOf(it.id, it.text, it.checked, it.aisle) }, attachments.map { it.id }).toString()
 }

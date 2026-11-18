@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -47,7 +48,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private val store = app.blocApp.savedViews
-    val savedViews: StateFlow<List<io.github.estebangocoalt.blocdenotas.data.SavedView>> = store.views
+    val savedViews: StateFlow<List<io.github.estebangocoalt.blocdenotas.data.SavedView>> =
+        store.views
+            .map { list -> list.filter { it.scope == io.github.estebangocoalt.blocdenotas.data.ViewScope.NOTES } }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /** Aplica una vista guardada (su filtro y su búsqueda). */
     fun applyView(view: io.github.estebangocoalt.blocdenotas.data.SavedView) {

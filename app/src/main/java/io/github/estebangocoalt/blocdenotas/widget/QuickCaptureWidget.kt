@@ -56,6 +56,28 @@ class QuickCaptureWidget : GlanceAppWidget() {
                 modifier = GlanceModifier.defaultWeight(),
                 style = TextStyle(color = ColorProvider(day = Color(0xFF5C554B), night = Color(0xFF5C554B)), fontSize = 16.sp),
             )
+            // Micrófono: abre la hoja de captura y empieza a grabar al momento.
+            Box(
+                modifier = GlanceModifier
+                    .size(44.dp)
+                    .cornerRadius(22.dp)
+                    .background(ColorProvider(day = Color(0xFFDCEBE8), night = Color(0xFFDCEBE8)))
+                    .clickable(
+                        actionStartActivity(
+                            Intent(context, QuickCaptureActivity::class.java)
+                                .setAction(QuickCaptureActivity.ACTION_RECORD)
+                                .putExtra(QuickCaptureActivity.EXTRA_RECORD, true),
+                        ),
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Image(
+                    provider = ImageProvider(R.drawable.ic_mic),
+                    contentDescription = context.getString(R.string.attach_record),
+                    modifier = GlanceModifier.size(22.dp),
+                )
+            }
+            Box(modifier = GlanceModifier.size(8.dp)) {}
             Box(
                 modifier = GlanceModifier
                     .size(44.dp)

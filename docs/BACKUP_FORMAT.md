@@ -59,6 +59,8 @@ importar en otro dispositivo. Este documento describe el formato (versión 1).
 
 `parentId` es el id de la nota que contiene esta subpágina (ausente o `null` = nota de primer nivel) y `deletedAt` el instante en que se envió a la papelera (`null` = no está en la papelera); ambos son opcionales.
 
+`attachments` lista las imágenes y notas de voz (`id`, `noteId`, `kind` = `IMAGE` | `AUDIO`, `fileName`, `position`, `durationMs`, `createdAt`). Los archivos van en la carpeta `attachments/` del ZIP con ese `fileName` (solo letras, números, `.`, `_` y `-`; los demás nombres se ignoran). Es opcional: las copias anteriores se importan igual, y un adjunto cuyo archivo falta se descarta.
+
 `reminderMinute` es la hora del aviso en minutos desde las 00:00 (540 = 09:00, hora local del día límite).
 
 `dueAt` es la medianoche UTC del día límite de una tarea y `completedAt` el instante en que se marcó como hecha (`null` = pendiente).
@@ -66,6 +68,8 @@ importar en otro dispositivo. Este documento describe el formato (versión 1).
 `columns`, `columnId` y `columnPosition` describen el tablero (solo las tareas lo usan). Son opcionales: las copias anteriores sin ellos se importan igual y sus tareas caen en la primera columna.
 
 `boards` es la lista de tableros (uno por proyecto: `id`, `title`, `position`) y cada columna indica su tablero en `boardId`. Son opcionales: sin ellos (o con `boardId` vacío o desconocido) las columnas pertenecen al primer tablero.
+
+`views` son las vistas guardadas (`id`, `name`, `scope` = `NOTES` | `TASKS` | `BOARD` | `CALENDAR`, `filter`, `query`, `tasks` con `sort`, `minPriority`, `tag` y `hideDone`, `boardId`, `agenda`) y `templates` las plantillas propias (`id`, `name`, `kind`, `title`, `body`, `items` como lista de textos, `colorIndex`). Cada elemento de lista puede llevar `aisle` (`PRODUCE`, `BAKERY`, `MEAT`, `FISH`, `DAIRY`, `PANTRY`, `DRINKS`, `FROZEN`, `CLEANING`, `HYGIENE` u `OTHER`; vacío = se deduce del nombre). Todos son opcionales: las copias anteriores se importan igual. Una copia sin `views` o `templates` no borra las que ya hay, ni siquiera al reemplazar.
 
 ## Reglas de importación
 

@@ -16,18 +16,27 @@ class QuickCaptureActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         val repository = blocApp.repository
+        val autoRecord = intent.getBooleanExtra(EXTRA_RECORD, false)
         setContent {
             BlocTheme {
                 CaptureSheet(
+                    autoRecord = autoRecord,
                     onDismiss = { finish() },
-                    onSave = { text, destination, priority ->
+                    onSave = { text, destination, priority, audio ->
                         // El ámbito de la app sobrevive al cierre de esta actividad.
-                        repository.appScope.launch { repository.capture(text, destination, priority) }
+                        val audioTitle = getString(R.string.attach_voice)
+                        repository.appScope.launch { repository.capture(text, destination, priority, audio, audioTitle) }
                         Toast.makeText(this, R.string.capture_saved, Toast.LENGTH_SHORT).show()
                         finish()
                     },
                 )
             }
         }
+    }
+
+    companion object {
+        /** Acción distinta para que el widget tenga un PendingIntent propio para el micrófono. */
+        const val ACTION_RECORD = "io.github.estebangocoalt.blocdenotas.action.RECORD"
+        const val EXTRA_RECORD = "record"
     }
 }

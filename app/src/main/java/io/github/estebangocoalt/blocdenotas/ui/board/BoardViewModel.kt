@@ -9,6 +9,12 @@ import io.github.estebangocoalt.blocdenotas.data.BoardColumnEntity
 import io.github.estebangocoalt.blocdenotas.data.BoardEntity
 import io.github.estebangocoalt.blocdenotas.data.BoardLogic
 import io.github.estebangocoalt.blocdenotas.data.NoteKind
+import io.github.estebangocoalt.blocdenotas.data.SavedView
+import io.github.estebangocoalt.blocdenotas.data.TagLogic
+import io.github.estebangocoalt.blocdenotas.data.TaskQuery
+import io.github.estebangocoalt.blocdenotas.data.TaskQueryLogic
+import io.github.estebangocoalt.blocdenotas.data.ViewScope
+import kotlinx.coroutines.flow.map
 import io.github.estebangocoalt.blocdenotas.data.NoteWithItems
 import android.content.Context
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +29,12 @@ data class BoardState(
     /** Tablero que se está viendo (null mientras se crea el primero). */
     val current: BoardEntity? = null,
     val columns: List<BoardColumnEntity> = emptyList(),
+    /** Todas las tarjetas de cada columna (orden manual). Es la base de mover y añadir. */
     val cards: Map<String, List<NoteWithItems>> = emptyMap(),
+    /** Las tarjetas que se ven con los filtros aplicados, en el mismo orden. */
+    val visible: Map<String, List<NoteWithItems>> = emptyMap(),
+    /** Etiquetas usadas en las tarjetas, para el filtro. */
+    val tags: List<String> = emptyList(),
 )
 
 class BoardViewModel(private val app: Application) : AndroidViewModel(app) {
@@ -32,8 +43,37 @@ class BoardViewModel(private val app: Application) : AndroidViewModel(app) {
     private val prefs = app.getSharedPreferences("board", Context.MODE_PRIVATE)
     private val selected = MutableStateFlow(prefs.getString(KEY_SELECTED, null))
 
+    private val _query = MutableStateFlow(TaskQuery())
+    val query: StateFlow<TaskQuery> = _query
+
+    fun setQuery(value: TaskQuery) {
+        _query.value = value
+    }
+
+    private val store = app.blocApp.savedViews
+    val views: StateFlow<List<SavedView>> =
+        store.views.map { list -> list.filter { it.scope == ViewScope.BOARD } }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Guarda el filtro actual junto con el tablero que se está viendo. */
+    fun saveView(name: String) {
+        store.add(
+            SavedView(
+                name = name, scope = ViewScope.BOARD, tasks = _query.value,
+                boardId = state.value.current?.id.orEmpty(),
+            ),
+        )
+    }
+
+    fun applyView(view: SavedView) {
+        _query.value = view.tasks
+        if (view.boardId.isNotEmpty() && state.value.boards.any { it.id == view.boardId }) select(view.boardId)
+    }
+
+    fun deleteView(id: String) = store.remove(id)
+
     val state: StateFlow<BoardState> =
-        combine(repository.boards, repository.columns, repository.notes, selected) { boards, allColumns, notes, sel ->
+        combine(repository.boards, repository.columns, repository.notes, selected, _query) { boards, allColumns, notes, sel, query ->
             val current = boards.firstOrNull { it.id == sel } ?: boards.firstOrNull()
             if (current == null) {
                 BoardState()
@@ -43,7 +83,15 @@ class BoardViewModel(private val app: Application) : AndroidViewModel(app) {
                 val mine = BoardLogic.cardsOf(allColumns, columns, current.id == boards.first().id, tasks.map { it.note })
                 val byId = tasks.associateBy { it.note.id }
                 val grouped = BoardLogic.group(columns, mine)
-                BoardState(boards, current, columns, grouped.mapValues { (_, list) -> list.mapNotNull { byId[it.id] } })
+                val full = grouped.mapValues { (_, list) -> list.mapNotNull { byId[it.id] } }
+                // Con filtros se conserva el orden manual; solo se ocultan las tarjetas que no encajan.
+                val shown = if (query.filters) {
+                    full.mapValues { (_, list) -> list.filter { TaskQueryLogic.matches(it.note, query) } }
+                } else {
+                    full
+                }
+                val tags = TagLogic.all(full.values.flatten().map { it.note.tags })
+                BoardState(boards, current, columns, full, shown, tags)
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), BoardState())
 
@@ -99,7 +147,11 @@ class BoardViewModel(private val app: Application) : AndroidViewModel(app) {
 
     /** Suelta una tarjeta arrastrada en la columna [columnId], en la posición [index] (0 = arriba). */
     fun dropCard(cardId: String, columnId: String, index: Int) {
-        val changed = BoardLogic.move(state.value.columns, allCards(), cardId, columnId, index)
+        // [index] cuenta sobre las tarjetas visibles; se traduce a la posición real entre todas.
+        val shown = state.value.visible[columnId].orEmpty().filter { it.note.id != cardId }
+        val full = state.value.cards[columnId].orEmpty().filter { it.note.id != cardId }
+        val real = if (index >= shown.size) full.size else full.indexOfFirst { it.note.id == shown[index].note.id }.coerceAtLeast(0)
+        val changed = BoardLogic.move(state.value.columns, allCards(), cardId, columnId, real)
         if (changed.isNotEmpty()) viewModelScope.launch { repository.saveCards(changed) }
     }
 

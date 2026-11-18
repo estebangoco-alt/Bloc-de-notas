@@ -86,6 +86,7 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.FilterChip
 import io.github.estebangocoalt.blocdenotas.data.NoteWithItems
 import io.github.estebangocoalt.blocdenotas.ui.common.formatDueDate
+import io.github.estebangocoalt.blocdenotas.ui.common.TaskFilterBar
 import io.github.estebangocoalt.blocdenotas.ui.theme.NoteColors
 
 private val ColumnWidth = 288.dp
@@ -143,7 +144,7 @@ fun BoardScreen(
     var rootWidth by remember { mutableIntStateOf(0) }
     val finishDrag: () -> Unit = {
         val id = drag.cardId
-        val target = drag.target(state.cards)
+        val target = drag.target(state.visible)
         if (id != null && target != null) vm.dropCard(id, target.first, target.second)
         drag.cardId = null
     }
@@ -238,6 +239,18 @@ fun BoardScreen(
                 )
             }
         }
+        val query by vm.query.collectAsStateWithLifecycle()
+        val views by vm.views.collectAsStateWithLifecycle()
+        TaskFilterBar(
+            query = query,
+            tags = state.tags,
+            onChange = vm::setQuery,
+            views = views,
+            onApplyView = vm::applyView,
+            onSaveView = vm::saveView,
+            onDeleteView = vm::deleteView,
+            showSort = false,
+        )
         LazyRow(
             state = listState,
             modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -248,7 +261,7 @@ fun BoardScreen(
                 BoardColumn(
                     column = column,
                     allColumns = state.columns,
-                    cards = state.cards[column.id].orEmpty(),
+                    cards = state.visible[column.id].orEmpty(),
                     onOpenCard = onOpenCard,
                     onAddCard = { title -> vm.addCard(column.id, title) },
                     onMoveCard = { cardId, target -> vm.moveCard(cardId, target) },

@@ -160,11 +160,37 @@ abstract class NoteDao {
     abstract suspend fun demoCount(): Int
 
     @Transaction
-    open suspend fun saveWithItems(note: NoteEntity, items: List<ChecklistItemEntity>) {
+    open suspend fun saveWithItems(
+        note: NoteEntity,
+        items: List<ChecklistItemEntity>,
+        attachments: List<AttachmentEntity>? = null,
+    ) {
         upsertNote(note)
         clearItems(note.id)
         upsertItems(items)
+        // null = no tocar los adjuntos (guardados desde widgets, captura rápida…).
+        if (attachments != null) {
+            clearAttachments(note.id)
+            if (attachments.isNotEmpty()) upsertAttachments(attachments)
+        }
     }
+
+    // ---- Adjuntos ----
+
+    @Query("SELECT * FROM attachments ORDER BY noteId, position")
+    abstract fun observeAttachments(): Flow<List<AttachmentEntity>>
+
+    @Query("SELECT * FROM attachments ORDER BY noteId, position")
+    abstract suspend fun allAttachments(): List<AttachmentEntity>
+
+    @Query("SELECT * FROM attachments WHERE noteId = :id ORDER BY position")
+    abstract suspend fun getAttachments(id: String): List<AttachmentEntity>
+
+    @Query("DELETE FROM attachments WHERE noteId = :id")
+    abstract suspend fun clearAttachments(id: String)
+
+    @Upsert
+    abstract suspend fun upsertAttachments(items: List<AttachmentEntity>)
 
     /**
      * Aplica una importación dentro de una sola transacción.
@@ -180,6 +206,7 @@ abstract class NoteDao {
         replace: Boolean,
         columns: List<BoardColumnEntity> = emptyList(),
         boards: List<BoardEntity> = emptyList(),
+        attachments: List<AttachmentEntity> = emptyList(),
     ): ImportResult {
         if (replace) {
             deleteAllNotes()
@@ -191,6 +218,7 @@ abstract class NoteDao {
         val local: Map<String, Long> =
             if (replace) emptyMap() else allStamps().associate { it.id to it.updatedAt }
         val itemsByNote = items.groupBy { it.noteId }
+        val attachmentsByNote = attachments.groupBy { it.noteId }
 
         var added = 0
         var updated = 0
@@ -208,6 +236,8 @@ abstract class NoteDao {
             upsertNote(note)
             clearItems(note.id)
             upsertItems(itemsByNote[note.id].orEmpty())
+            clearAttachments(note.id)
+            attachmentsByNote[note.id]?.let { upsertAttachments(it) }
         }
         return ImportResult(added, updated, skipped)
     }

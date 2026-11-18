@@ -25,6 +25,18 @@ class BlocApp : Application() {
     val savedViews: io.github.estebangocoalt.blocdenotas.data.SavedViewsStore by lazy {
         io.github.estebangocoalt.blocdenotas.data.SavedViewsStore(this)
     }
+    val customTemplates: io.github.estebangocoalt.blocdenotas.data.CustomTemplatesStore by lazy {
+        io.github.estebangocoalt.blocdenotas.data.CustomTemplatesStore(this)
+    }
+    val attachmentStore: io.github.estebangocoalt.blocdenotas.attachments.AttachmentStore by lazy {
+        io.github.estebangocoalt.blocdenotas.attachments.AttachmentStore(this)
+    }
+    val syncPrefs: io.github.estebangocoalt.blocdenotas.sync.SyncPrefs by lazy {
+        io.github.estebangocoalt.blocdenotas.sync.SyncPrefs(this)
+    }
+    val syncManager: io.github.estebangocoalt.blocdenotas.sync.SyncManager by lazy {
+        io.github.estebangocoalt.blocdenotas.sync.SyncManager(syncPrefs, backupManager)
+    }
     val appLock: io.github.estebangocoalt.blocdenotas.lock.AppLock by lazy {
         io.github.estebangocoalt.blocdenotas.lock.AppLock(this)
     }
@@ -37,7 +49,13 @@ class BlocApp : Application() {
     override fun onCreate() {
         super.onCreate()
         ReminderNotifier.createChannel(this)
-        repository.appScope.launch { repository.purgeOldTrash() }
+        repository.appScope.launch {
+            repository.purgeOldTrash()
+            // Quita los archivos de adjuntos que ya no usa ninguna nota (borradas, quitados…).
+            attachmentStore.sweep(repository.allAttachmentFileNames())
+            // Sincronización opcional: solo si el usuario la ha activado y ha rellenado los datos.
+            if (syncPrefs.autoOnOpen && syncPrefs.config.isComplete) syncManager.syncNow()
+        }
         // Los widgets de lista, agenda y fijadas se redibujan cuando cambian las notas.
         repository.appScope.launch {
             repository.notes.debounce(600).collect {

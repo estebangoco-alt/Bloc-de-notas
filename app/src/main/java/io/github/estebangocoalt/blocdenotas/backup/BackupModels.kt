@@ -1,5 +1,11 @@
 package io.github.estebangocoalt.blocdenotas.backup
 
+import io.github.estebangocoalt.blocdenotas.data.Aisle
+import io.github.estebangocoalt.blocdenotas.data.AttachmentEntity
+import io.github.estebangocoalt.blocdenotas.data.AttachmentKind
+import io.github.estebangocoalt.blocdenotas.data.AttachmentLogic
+import io.github.estebangocoalt.blocdenotas.data.CustomTemplate
+import io.github.estebangocoalt.blocdenotas.data.SavedView
 import io.github.estebangocoalt.blocdenotas.data.Priority
 import io.github.estebangocoalt.blocdenotas.data.RepeatRule
 import io.github.estebangocoalt.blocdenotas.data.TagLogic
@@ -27,6 +33,23 @@ data class BackupFile(
     val columns: List<BackupColumn> = emptyList(),
     /** Tableros (uno por proyecto; campo opcional). Sin él, todas las columnas son del único tablero. */
     val boards: List<BackupBoard> = emptyList(),
+    /** Vistas guardadas de Notas, Tareas, Tablero y Calendario (campo opcional). */
+    val views: List<SavedView> = emptyList(),
+    /** Plantillas propias (campo opcional). */
+    val templates: List<CustomTemplate> = emptyList(),
+    /** Imágenes y notas de voz (campo opcional). Los archivos van en la carpeta `attachments/` del ZIP. */
+    val attachments: List<BackupAttachment> = emptyList(),
+)
+
+@Serializable
+data class BackupAttachment(
+    val id: String,
+    val noteId: String,
+    val kind: String = AttachmentKind.IMAGE.name,
+    val fileName: String,
+    val position: Int = 0,
+    val durationMs: Long = 0,
+    val createdAt: Long = 0,
 )
 
 @Serializable
@@ -74,6 +97,8 @@ data class BackupItem(
     val text: String = "",
     val checked: Boolean = false,
     val position: Int = 0,
+    /** Pasillo (campo opcional). Vacío = se deduce del nombre. */
+    val aisle: String = "",
 )
 
 object BackupMapper {
@@ -86,7 +111,11 @@ object BackupMapper {
         exportedAt: Long,
         columns: List<BoardColumnEntity> = emptyList(),
         boards: List<BoardEntity> = emptyList(),
+        attachments: List<AttachmentEntity> = emptyList(),
     ): BackupFile = BackupFile(
+        attachments = attachments.map {
+            BackupAttachment(it.id, it.noteId, it.kind, it.fileName, it.position, it.durationMs, it.createdAt)
+        },
         exportedAt = exportedAt,
         appVersion = appVersion,
         columns = columns.map { BackupColumn(it.id, it.title, it.position, it.boardId) },
@@ -113,7 +142,7 @@ object BackupMapper {
                 parentId = note.parentId,
                 deletedAt = note.deletedAt,
                 items = itemsByNote[note.id].orEmpty().sortedBy { it.position }.map { item ->
-                    BackupItem(item.id, item.text, item.checked, item.position)
+                    BackupItem(item.id, item.text, item.checked, item.position, item.aisle)
                 },
             )
         },
@@ -123,6 +152,20 @@ object BackupMapper {
      * Convierte la copia en entidades de base de datos, saneando datos raros:
      * ids vacíos o repetidos, colores fuera de rango, tipos desconocidos.
      */
+    /**
+     * Adjuntos de la copia que se pueden usar: de una nota que se importa, con nombre de archivo
+     * seguro, de un tipo conocido y con el archivo ya restaurado ([availableFiles]).
+     */
+    fun attachmentsOf(file: BackupFile, noteIds: Set<String>, availableFiles: Set<String>): List<AttachmentEntity> {
+        val seen = HashSet<String>()
+        return file.attachments.mapNotNull { a ->
+            val kind = AttachmentKind.fromName(a.kind) ?: return@mapNotNull null
+            if (a.noteId !in noteIds || a.fileName !in availableFiles || !AttachmentLogic.isSafeName(a.fileName)) return@mapNotNull null
+            val id = if (a.id.isBlank() || !seen.add(a.id)) UUID.randomUUID().toString().also { seen.add(it) } else a.id
+            AttachmentEntity(id, a.noteId, kind.name, a.fileName, a.position, a.durationMs, a.createdAt)
+        }
+    }
+
     /** Columnas del tablero de la copia, sin ids vacíos ni repetidos. */
     fun columnsOf(file: BackupFile): List<BoardColumnEntity> {
         val seen = HashSet<String>()
@@ -181,6 +224,7 @@ object BackupMapper {
                     text = i.text,
                     checked = i.checked,
                     position = i.position,
+                    aisle = Aisle.normalize(i.aisle),
                 )
             }
         }

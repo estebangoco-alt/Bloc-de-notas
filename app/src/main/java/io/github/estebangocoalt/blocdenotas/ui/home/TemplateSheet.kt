@@ -1,7 +1,18 @@
 package io.github.estebangocoalt.blocdenotas.ui.home
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.estebangocoalt.blocdenotas.blocApp
+import io.github.estebangocoalt.blocdenotas.data.CustomTemplate
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,13 +46,32 @@ private fun NoteTemplate.colorIndex(): Int = when (this) {
 }
 
 /** Galería «Nueva desde plantilla»: cuadrícula de 2 columnas con colores pastel. */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TemplateSheet(
     onPick: (NoteTemplate) -> Unit,
+    onPickCustom: (CustomTemplate) -> Unit,
     onBlank: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val store = LocalContext.current.blocApp.customTemplates
+    val custom by store.templates.collectAsStateWithLifecycle()
+    var toDelete by remember { mutableStateOf<CustomTemplate?>(null) }
+    toDelete?.let { template ->
+        AlertDialog(
+            onDismissRequest = { toDelete = null },
+            title = { Text(stringResource(R.string.template_delete_title, template.name)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    store.remove(template.id)
+                    toDelete = null
+                }) { Text(stringResource(R.string.action_delete)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { toDelete = null }) { Text(stringResource(R.string.action_cancel)) }
+            },
+        )
+    }
     ModalBottomSheet(onDismissRequest = onDismiss, containerColor = MaterialTheme.colorScheme.background) {
         Column(
             Modifier.navigationBarsPadding().padding(start = 20.dp, end = 20.dp, bottom = 24.dp),
@@ -52,26 +82,30 @@ fun TemplateSheet(
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
             )
-            val tiles: List<Triple<Int, Int, () -> Unit>> =
+            // Cada tarjeta: color, texto (propio o de recursos), qué hacer al pulsar y qué al mantener pulsada.
+            class Tile(val color: Int, val label: String, val onClick: () -> Unit, val onLongClick: (() -> Unit)? = null)
+            val tiles: List<Tile> =
                 NoteTemplate.entries.map { t ->
-                    Triple(t.colorIndex(), t.label) { onPick(t) }
-                } + Triple(5, R.string.template_blank, onBlank)
+                    Tile(t.colorIndex(), stringResource(t.label), { onPick(t) })
+                } + custom.map { c ->
+                    Tile(c.colorIndex.coerceIn(0, 5), c.name, { onPickCustom(c) }, { toDelete = c })
+                } + Tile(5, stringResource(R.string.template_blank), onBlank)
             tiles.chunked(2).forEach { row ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    row.forEach { (color, label, action) ->
-                        val swatch = NoteColors.at(color)
+                    row.forEach { tile ->
+                        val swatch = NoteColors.at(tile.color)
                         Column(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(92.dp)
                                 .clip(RoundedCornerShape(20.dp))
                                 .background(swatch.background)
-                                .clickable(onClick = action)
+                                .combinedClickable(onClick = tile.onClick, onLongClick = tile.onLongClick)
                                 .padding(16.dp),
                             verticalArrangement = Arrangement.Bottom,
                         ) {
                             Text(
-                                text = stringResource(label),
+                                text = tile.label,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = swatch.content,
@@ -81,6 +115,11 @@ fun TemplateSheet(
                     if (row.size == 1) Column(Modifier.weight(1f)) {}
                 }
             }
+            Text(
+                text = stringResource(R.string.template_custom_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

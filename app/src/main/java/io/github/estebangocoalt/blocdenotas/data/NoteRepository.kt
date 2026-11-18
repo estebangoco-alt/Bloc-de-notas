@@ -46,8 +46,16 @@ class NoteRepository(
         return NoteWithItems(note, dao.getItems(id))
     }
 
-    suspend fun save(note: NoteEntity, items: List<ChecklistItemEntity>) {
-        dao.saveWithItems(note, items)
+    /** Todos los adjuntos, para mostrarlos y para la copia de seguridad. */
+    val attachments: Flow<List<AttachmentEntity>> = dao.observeAttachments()
+
+    suspend fun attachmentsOf(noteId: String): List<AttachmentEntity> = dao.getAttachments(noteId)
+
+    suspend fun allAttachmentFileNames(): Set<String> = dao.allAttachments().map { it.fileName }.toSet()
+
+    /** [attachments] = null deja los adjuntos como están. */
+    suspend fun save(note: NoteEntity, items: List<ChecklistItemEntity>, attachments: List<AttachmentEntity>? = null) {
+        dao.saveWithItems(note, items, attachments)
         reminders.sync(note)
     }
 
@@ -110,17 +118,26 @@ class NoteRepository(
     }
 
     /** Guarda un texto capturado. Devuelve false si estaba en blanco. */
-    suspend fun capture(raw: String, destination: CaptureDestination, priority: Int = Priority.NONE): Boolean {
-        if (raw.isBlank()) return false
+    suspend fun capture(
+        raw: String,
+        destination: CaptureDestination,
+        priority: Int = Priority.NONE,
+        audio: CaptureAudio? = null,
+        audioTitle: String = "",
+    ): Boolean {
+        if (raw.isBlank() && audio == null) return false
+        // Una nota de voz sin texto lleva [audioTitle] como título.
+        val text = raw.ifBlank { audioTitle }
         val now = System.currentTimeMillis()
         val kind = destination.kind
         if (kind == null) {
-            dao.upsertNote(NoteEntity(body = raw.trim(), inbox = true, createdAt = now, updatedAt = now))
+            val note = NoteEntity(body = text.trim(), inbox = true, createdAt = now, updatedAt = now)
+            dao.saveWithItems(note, emptyList(), audio?.let { listOf(it.toEntity(note.id, now)) })
             return true
         }
         // La prioridad solo existe en las tareas.
         val level = if (kind == NoteKind.TASK) Priority.clamp(priority) else Priority.NONE
-        saveParsed(NoteEntity(kind = kind, priority = level, createdAt = now, updatedAt = now), raw)
+        saveParsed(NoteEntity(kind = kind, priority = level, createdAt = now, updatedAt = now), text, audio)
         return true
     }
 
@@ -133,7 +150,7 @@ class NoteRepository(
         )
     }
 
-    private suspend fun saveParsed(base: NoteEntity, raw: String) {
+    private suspend fun saveParsed(base: NoteEntity, raw: String, audio: CaptureAudio? = null) {
         val parsed = CaptureParser.parse(raw, base.kind)
         val note = base.copy(
             title = parsed.title,
@@ -143,7 +160,7 @@ class NoteRepository(
         val items = parsed.items.mapIndexed { index, text ->
             ChecklistItemEntity(noteId = note.id, text = text, position = index)
         }
-        dao.saveWithItems(note, items)
+        dao.saveWithItems(note, items, audio?.let { listOf(it.toEntity(note.id, System.currentTimeMillis())) })
     }
 
     suspend fun setCompleted(id: String, done: Boolean) {
@@ -250,16 +267,21 @@ class NoteRepository(
     suspend fun buildBackup(appVersion: String, exportedAt: Long): BackupFile {
         val notes = dao.allNotes()
         val items = dao.allItems().groupBy { it.noteId }
-        return BackupMapper.toBackup(notes, items, appVersion, exportedAt, dao.allColumns(), dao.allBoards())
+        return BackupMapper.toBackup(
+            notes, items, appVersion, exportedAt, dao.allColumns(), dao.allBoards(),
+            attachments = dao.allAttachments(),
+        )
     }
 
-    suspend fun importBackup(file: BackupFile, mode: ImportMode): ImportResult {
+    /** [availableFiles] son los nombres de adjuntos cuyo archivo se ha podido restaurar. */
+    suspend fun importBackup(file: BackupFile, mode: ImportMode, availableFiles: Set<String> = emptySet()): ImportResult {
         val (notes, items) = BackupMapper.toEntities(file)
         return dao.applyImport(
             notes, items,
             replace = mode == ImportMode.REPLACE,
             columns = BackupMapper.columnsOf(file),
             boards = BackupMapper.boardsOf(file),
+            attachments = BackupMapper.attachmentsOf(file, notes.map { it.id }.toSet(), availableFiles),
         )
     }
 }

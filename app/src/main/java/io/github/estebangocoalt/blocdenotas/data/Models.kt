@@ -97,6 +97,8 @@ data class ChecklistItemEntity(
     val text: String,
     val checked: Boolean = false,
     val position: Int = 0,
+    /** Pasillo del artículo (id de [Aisle]). Vacío = se deduce del nombre. */
+    @ColumnInfo(defaultValue = "''") val aisle: String = "",
 )
 
 data class NoteWithItems(

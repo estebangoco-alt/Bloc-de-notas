@@ -1,6 +1,7 @@
 package io.github.estebangocoalt.blocdenotas.ui.tasks
 
 import io.github.estebangocoalt.blocdenotas.ui.common.SettingsButton
+import io.github.estebangocoalt.blocdenotas.ui.common.TaskFilterBar
 import io.github.estebangocoalt.blocdenotas.ui.common.PropertyChips
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
@@ -71,7 +72,11 @@ fun TasksScreen(
     val tasks by vm.tasks.collectAsStateWithLifecycle()
     val today = remember { LocalDate.now().toEpochDay() }
     val byId = remember(tasks) { tasks.associateBy { it.note.id } }
-    val groups = remember(tasks, today) { TaskLogic.group(tasks.map { it.note }, today) }
+    val query by vm.query.collectAsStateWithLifecycle()
+    val tags by vm.tags.collectAsStateWithLifecycle()
+    val allViews by vm.views.collectAsStateWithLifecycle()
+    val views = remember(allViews) { vm.viewsOf(allViews) }
+    val groups = remember(tasks, today, query) { TaskLogic.group(tasks.map { it.note }, today, query.taskSort) }
 
     Box(modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize().statusBarsPadding()) {
@@ -87,9 +92,18 @@ fun TasksScreen(
                 )
                 SettingsButton(onOpenSettings)
             }
+            TaskFilterBar(
+                query = query,
+                tags = tags,
+                onChange = vm::setQuery,
+                views = views,
+                onApplyView = { vm.setQuery(it.tasks) },
+                onSaveView = { name -> vm.saveView(name) },
+                onDeleteView = vm::deleteView,
+            )
             if (groups.isEmpty()) {
                 Text(
-                    text = stringResource(R.string.tasks_empty),
+                    text = stringResource(if (query.filters) R.string.tasks_no_match else R.string.tasks_empty),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(20.dp),

@@ -1,6 +1,6 @@
 # Bloc de notas
 
-> Notas, tareas, ideas, lista de la compra, tablero tipo Trello y calendario en una sola app para Android, pensada para apuntar de forma instantánea desde la pantalla de inicio. Software libre, sin anuncios, sin cuentas y 100 % sin conexión.
+> Notas, tareas, ideas, lista de la compra, tablero tipo Trello y calendario en una sola app para Android, pensada para apuntar de forma instantánea desde la pantalla de inicio. Software libre, sin anuncios, sin cuentas y sin conexión por defecto (la sincronización con tu propio servidor es opcional).
 
 **Estado: pre-alpha, en desarrollo.** La app ya funciona en Android con casi todas las funciones de la versión 1 (ver abajo); aún falta probarla a fondo, el icono final en las tiendas y publicar la primera versión. Consulta la [hoja de ruta](docs/ROADMAP.md) y el [historial de cambios](CHANGELOG.md).
 
@@ -37,17 +37,18 @@ Las casillas indican el estado actual: ✅ hecho, ⬜ pendiente.
 - [x] Notas de texto y listas con casillas
 - [x] Colores, notas fijadas y búsqueda
 - [x] Recordatorios con notificación
-- [x] Plantillas (compra semanal, reunión, proyecto, diario)
-- [x] Modo compra (filas grandes y pantalla encendida)
+- [x] Plantillas (compra semanal, reunión, proyecto, diario) y plantillas propias («Guardar como plantilla»)
+- [x] Modo compra (filas grandes, pantalla encendida y artículos agrupados por pasillo)
 - [x] Copia de seguridad y restauración en ZIP
 - [x] Tema claro, oscuro y Material You (con interruptor en Inicio y en Ajustes)
-- [x] Funciona sin permiso de internet
+- [x] Funciona sin conexión: el permiso de internet solo se usa en la sincronización opcional, apagada por defecto
 
 ### Versión 1
 - [x] Tablero kanban con columnas, subtareas y varios tableros por proyecto
 - [x] Calendario mensual con agenda
 - [x] Tareas con fecha, hora de aviso, prioridad y repetición (diaria, semanal, mensual, anual)
-- [x] Vistas guardadas (filtro y búsqueda) en Inicio
+- [x] Vistas guardadas en Notas, Tareas, Tablero y Calendario, también dentro de la copia de seguridad
+- [x] Orden (fecha, prioridad, título, recientes) y filtros (prioridad, etiqueta, ocultar hechas) en Tareas, Tablero y Calendario
 - [x] Propiedades personalizadas: estado (columna), fecha, prioridad y etiquetas
 - [x] Enlaces entre notas `[[Título]]`, menciones `@` («Mencionada en») y subpáginas
 - [x] Comandos con `/` en el editor
@@ -57,12 +58,12 @@ Las casillas indican el estado actual: ✅ hecho, ⬜ pendiente.
 - [x] Resumen (dashboard) con los datos de las cuatro secciones
 - [x] Datos de ejemplo para probar la app (Ajustes)
 - [x] Castellano e inglés
-- [ ] Plantillas propias, secciones por pasillo en el modo compra y orden/filtros en Tareas
-- [ ] Vistas guardadas también en tablero y calendario, y dentro de la copia de seguridad
+- [x] Plantillas propias, secciones por pasillo en el modo compra y orden/filtros en Tareas
+- [x] Vistas guardadas también en tablero y calendario, y dentro de la copia de seguridad
 
 ### Versión 2 (ideas)
-- [ ] Sincronización opcional (WebDAV / Nextcloud / Syncthing)
-- [ ] Nota de voz e imágenes
+- [x] Sincronización opcional con WebDAV / Nextcloud (Syncthing: pendiente)
+- [x] Imágenes y notas de voz adjuntas a las notas
 - [ ] Importar desde Google Keep y Todoist
 - [ ] Relaciones entre tablas y línea de tiempo
 
@@ -91,7 +92,7 @@ En **Ajustes** puedes:
 - **Copia de seguridad (`.zip` con `backup.json`)**: exportar todo y restaurarlo en otro dispositivo (modo *Combinar* o *Reemplazar*). Incluye notas, listas, tableros, columnas, prioridad, etiquetas, subpáginas y papelera. Formato: [`docs/BACKUP_FORMAT.md`](docs/BACKUP_FORMAT.md).
 - **Exportar a Markdown**: un `.zip` con un archivo `.md` por nota, en carpetas por tipo y con cabecera YAML (fechas, etiquetas, prioridad).
 
-Sin permisos de almacenamiento ni internet. Las vistas guardadas todavía no entran en la copia.
+Sin permisos de almacenamiento. Incluye las vistas guardadas, las plantillas propias y los archivos adjuntos.
 
 ## Instalación
 
@@ -137,8 +138,8 @@ Todas las dependencias deben ser software libre, para cumplir la [política de i
 
 - Sin cuentas, sin anuncios y sin analítica.
 - Todos los datos se guardan en el dispositivo.
-- La app no tiene el permiso de internet.
-- Permisos: notificaciones, alarmas exactas (recordatorios), arrancar al iniciar el móvil (reprogramar avisos) y biometría (bloqueo opcional).
+- El permiso de internet se usa únicamente para la sincronización opcional con tu servidor WebDAV/Nextcloud, que está apagada por defecto. No hay anuncios, analíticas ni servidores nuestros. El usuario y la contraseña se guardan en el almacenamiento privado de la app.
+- Permisos: micrófono (solo mientras grabas una nota de voz), internet (solo con la sincronización activada), notificaciones, alarmas exactas (recordatorios), arrancar al iniciar el móvil (reprogramar avisos) y biometría (bloqueo opcional).
 - Con el bloqueo activado, la ventana se oculta en capturas y apps recientes.
 
 ## Estructura del repositorio

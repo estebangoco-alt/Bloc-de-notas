@@ -37,6 +37,11 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import io.github.estebangocoalt.blocdenotas.data.AisleLogic
+import io.github.estebangocoalt.blocdenotas.ui.common.labelRes
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -79,6 +84,8 @@ fun ShoppingModeScreen(
     val items = data?.items.orEmpty().sortedWith(compareBy<ChecklistItemEntity> { it.checked }.thenBy { it.position })
     val total = items.size
     val done = items.count { it.checked }
+    var byAisle by rememberSaveable { mutableStateOf(true) }
+    val groups = remember(items) { AisleLogic.group(items) }
 
     Surface(modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize().navigationBarsPadding()) {
@@ -151,13 +158,53 @@ fun ShoppingModeScreen(
                 )
             }
 
+            if (total > 1) {
+                Row(
+                    Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    listOf(true to R.string.shopping_by_aisle, false to R.string.shopping_by_list).forEach { (value, label) ->
+                        FilterChip(
+                            selected = byAisle == value,
+                            onClick = { byAisle = value },
+                            label = { Text(stringResource(label)) },
+                            shape = CircleShape,
+                            border = null,
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = swatch.accent,
+                                selectedLabelColor = Color.White,
+                            ),
+                        )
+                    }
+                }
+            }
+
             LazyColumn(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 20.dp, vertical = 8.dp),
             ) {
-                items(items, key = { it.id }) { item ->
-                    ShoppingRow(item = item, swatch = swatch, onToggle = { vm.setChecked(item.id, !item.checked) })
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f))
+                if (byAisle) {
+                    groups.forEach { (aisle, list) ->
+                        item(key = "aisle-${aisle.name}") {
+                            val left = list.count { !it.checked }
+                            Text(
+                                text = "${stringResource(aisle.labelRes())} · $left/${list.size}",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = swatch.accent,
+                                modifier = Modifier.padding(top = 16.dp, bottom = 2.dp),
+                            )
+                        }
+                        items(list, key = { it.id }) { item ->
+                            ShoppingRow(item = item, swatch = swatch, onToggle = { vm.setChecked(item.id, !item.checked) })
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f))
+                        }
+                    }
+                } else {
+                    items(items, key = { it.id }) { item ->
+                        ShoppingRow(item = item, swatch = swatch, onToggle = { vm.setChecked(item.id, !item.checked) })
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f))
+                    }
                 }
             }
 

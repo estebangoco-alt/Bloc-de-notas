@@ -45,6 +45,10 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material.icons.filled.MoreVert
+import io.github.estebangocoalt.blocdenotas.data.Aisle
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
@@ -102,6 +106,8 @@ fun EditorScreen(
     val allNotes by vm.allNotes.collectAsStateWithLifecycle()
     var bodyField by remember { mutableStateOf(TextFieldValue(vm.body)) }
     var pickerMention by remember { mutableStateOf<Boolean?>(null) }
+    var moreMenu by remember { mutableStateOf(false) }
+    var templateDialog by remember { mutableStateOf(false) }
 
     // El cuerpo se carga después de abrir la pantalla: mantiene el campo de texto al día.
     LaunchedEffect(vm.body) {
@@ -174,6 +180,20 @@ fun EditorScreen(
                     }
                     IconButton(onClick = { confirmDelete = true }) {
                         Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.cd_delete))
+                    }
+                    Box {
+                        IconButton(onClick = { moreMenu = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.cd_more))
+                        }
+                        DropdownMenu(expanded = moreMenu, onDismissRequest = { moreMenu = false }) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.template_save_as)) },
+                                onClick = {
+                                    moreMenu = false
+                                    templateDialog = true
+                                },
+                            )
+                        }
                     }
                 }
 
@@ -319,7 +339,7 @@ fun EditorScreen(
 
                     vm.items.filter { !it.checked }.forEach { item ->
                         key(item.id) {
-                            ItemRow(item = item, swatch = swatch, onRemove = { vm.removeItem(item) })
+                            ItemRow(item = item, swatch = swatch, showAisle = vm.kind == NoteKind.SHOPPING, onRemove = { vm.removeItem(item) })
                         }
                     }
 
@@ -357,12 +377,13 @@ fun EditorScreen(
                         if (showDone) {
                             doneItems.forEach { item ->
                                 key(item.id) {
-                                    ItemRow(item = item, swatch = swatch, onRemove = { vm.removeItem(item) })
+                                    ItemRow(item = item, swatch = swatch, showAisle = vm.kind == NoteKind.SHOPPING, onRemove = { vm.removeItem(item) })
                                 }
                             }
                         }
                     }
 
+                    AttachmentsSection(vm = vm, swatch = swatch)
 
                     NoteRelations(
                         body = vm.body,
@@ -452,6 +473,34 @@ fun EditorScreen(
         )
     }
 
+    if (templateDialog) {
+        var templateName by remember { mutableStateOf(vm.title.trim()) }
+        AlertDialog(
+            onDismissRequest = { templateDialog = false },
+            title = { Text(stringResource(R.string.template_save_as)) },
+            text = {
+                OutlinedTextField(
+                    value = templateName,
+                    onValueChange = { templateName = it.take(40) },
+                    singleLine = true,
+                    label = { Text(stringResource(R.string.template_name)) },
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = templateName.isNotBlank(),
+                    onClick = {
+                        vm.saveAsTemplate(templateName)
+                        templateDialog = false
+                    },
+                ) { Text(stringResource(R.string.action_save)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { templateDialog = false }) { Text(stringResource(R.string.action_cancel)) }
+            },
+        )
+    }
+
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
@@ -476,7 +525,7 @@ fun EditorScreen(
 }
 
 @Composable
-private fun ItemRow(item: EditItem, swatch: NoteSwatch, onRemove: () -> Unit) {
+private fun ItemRow(item: EditItem, swatch: NoteSwatch, showAisle: Boolean, onRemove: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -511,6 +560,7 @@ private fun ItemRow(item: EditItem, swatch: NoteSwatch, onRemove: () -> Unit) {
             placeholder = { Text(stringResource(R.string.editor_item_hint)) },
             colors = noteFieldColors(swatch),
         )
+        if (showAisle && item.text.isNotBlank()) AislePicker(item, swatch)
         IconButton(onClick = onRemove) {
             Icon(
                 Icons.Default.Close,
@@ -553,3 +603,42 @@ private fun noteFieldColors(swatch: NoteSwatch): TextFieldColors = TextFieldDefa
     focusedPlaceholderColor = swatch.content.copy(alpha = 0.55f),
     unfocusedPlaceholderColor = swatch.content.copy(alpha = 0.55f),
 )
+
+/** Pasillo del artículo: muestra el actual (elegido o deducido) y permite cambiarlo. */
+@Composable
+private fun AislePicker(item: EditItem, swatch: NoteSwatch) {
+    var open by remember { mutableStateOf(false) }
+    val current = Aisle.resolve(item.text, item.aisle)
+    Box {
+        Text(
+            text = stringResource(current.labelRes()),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = swatch.content,
+            maxLines = 1,
+            modifier = Modifier
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = if (item.aisle.isEmpty()) 0.35f else 0.7f))
+                .clickable { open = true }
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+        )
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.aisle_auto)) },
+                onClick = {
+                    item.aisle = ""
+                    open = false
+                },
+            )
+            Aisle.entries.forEach { aisle ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(aisle.labelRes())) },
+                    onClick = {
+                        item.aisle = aisle.name
+                        open = false
+                    },
+                )
+            }
+        }
+    }
+}

@@ -122,6 +122,14 @@ fun BlocNavHost(
                 HomeScreen(
                     onNewNote = { navController.navigate(Routes.editor()) },
                     onNewFromTemplate = { t -> navController.navigate(Routes.editor(kind = t.kind, template = t.name)) },
+                    onNewFromCustom = { t ->
+                        navController.navigate(
+                            Routes.editor(
+                                kind = t.noteKind,
+                                template = io.github.estebangocoalt.blocdenotas.data.CustomTemplateRef.of(t.id),
+                            ),
+                        )
+                    },
                     onOpenNote = { id -> navController.navigate(Routes.editor(id)) },
                     onOpenInbox = { navController.navigate(Routes.INBOX) },
                     onOpenSettings = { navController.navigate(Routes.SETTINGS) },

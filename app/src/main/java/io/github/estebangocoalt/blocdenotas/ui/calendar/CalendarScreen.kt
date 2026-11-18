@@ -57,6 +57,8 @@ import io.github.estebangocoalt.blocdenotas.R
 import io.github.estebangocoalt.blocdenotas.data.CalendarLogic
 import io.github.estebangocoalt.blocdenotas.data.NoteWithItems
 import io.github.estebangocoalt.blocdenotas.data.TaskLogic
+import io.github.estebangocoalt.blocdenotas.data.ViewScope
+import io.github.estebangocoalt.blocdenotas.ui.common.TaskFilterBar
 import io.github.estebangocoalt.blocdenotas.ui.tasks.TaskRow
 import io.github.estebangocoalt.blocdenotas.ui.tasks.TasksViewModel
 import java.time.LocalDate
@@ -77,6 +79,11 @@ fun CalendarScreen(
     vm: TasksViewModel = viewModel(),
 ) {
     val tasks by vm.tasks.collectAsStateWithLifecycle()
+    remember(vm) { vm.scope = ViewScope.CALENDAR }
+    val query by vm.query.collectAsStateWithLifecycle()
+    val tags by vm.tags.collectAsStateWithLifecycle()
+    val allViews by vm.views.collectAsStateWithLifecycle()
+    val views = remember(allViews) { vm.viewsOf(allViews) }
     val today = remember { LocalDate.now() }
     // Se guardan como días desde 1970 para que sobrevivan a rotar la pantalla.
     var monthStart by rememberSaveable { mutableStateOf(today.withDayOfMonth(1).toEpochDay()) }
@@ -141,6 +148,20 @@ fun CalendarScreen(
                 Spacer(Modifier.weight(1f))
                 SettingsButton(onOpenSettings)
             }
+            TaskFilterBar(
+                query = query,
+                tags = tags,
+                onChange = vm::setQuery,
+                views = views,
+                onApplyView = { view ->
+                    vm.setQuery(view.tasks)
+                    agenda = view.agenda
+                },
+                onSaveView = { name -> vm.saveView(name, agenda = agenda) },
+                onDeleteView = vm::deleteView,
+                modifier = Modifier.padding(top = 8.dp),
+                showSort = false,
+            )
             if (agenda) {
                 AgendaList(
                     tasks = tasks,

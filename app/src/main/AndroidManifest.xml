@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Sin permiso de internet a propósito: todo se guarda en el dispositivo. -->
+    <!-- Nota de voz: el micrófono solo se usa mientras se graba, y se pide la primera vez. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- Internet solo se usa para la sincronización opcional con tu servidor WebDAV/Nextcloud (apagada por defecto). -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- Avisos de tareas: notificaciones (Android 13+), alarma a la hora exacta y reprogramar los avisos al reiniciar. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />

@@ -255,6 +255,11 @@ fun SettingsScreen(
 
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
 
+            SectionLabel(R.string.settings_sync_section)
+            SyncSection()
+
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+
             SectionLabel(R.string.settings_security_section)
             val lockEnabled by context.blocApp.appLock.enabled.collectAsStateWithLifecycle()
             ListItem(

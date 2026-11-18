@@ -16,7 +16,10 @@ import java.util.zip.ZipOutputStream
  * y con límite de tamaño, así que no hay riesgo de "zip slip" ni de "zip bomb".
  */
 object BackupZip {
-    const val MAX_BYTES: Int = 64 * 1024 * 1024
+    const val MAX_BYTES: Int = 128 * 1024 * 1024
+
+    /** Carpeta del ZIP donde van las imágenes y notas de voz. */
+    const val ATTACHMENTS_DIR = "attachments/"
 
     fun isZip(bytes: ByteArray): Boolean =
         bytes.size >= 4 &&
@@ -33,6 +36,47 @@ object BackupZip {
             zip.closeEntry()
         }
         return out.toByteArray()
+    }
+
+    /** Empaqueta varias entradas (nombre → contenido). */
+    fun packAll(entries: Map<String, ByteArray>): ByteArray {
+        val out = ByteArrayOutputStream()
+        ZipOutputStream(out).use { zip ->
+            for ((name, data) in entries) {
+                zip.putNextEntry(ZipEntry(name))
+                zip.write(data)
+                zip.closeEntry()
+            }
+        }
+        return out.toByteArray()
+    }
+
+    /**
+     * Lee en memoria las entradas de la carpeta [ATTACHMENTS_DIR] cuyo nombre es un archivo plano y seguro
+     * (clave = nombre sin carpeta). Ignora todo lo demás. [maxTotal] limita lo que se lee en total.
+     */
+    fun unpackAttachments(zip: ByteArray, maxTotal: Int = MAX_BYTES): Map<String, ByteArray> {
+        if (!isZip(zip)) return emptyMap()
+        val result = LinkedHashMap<String, ByteArray>()
+        var total = 0
+        try {
+            ZipInputStream(ByteArrayInputStream(zip)).use { input ->
+                while (true) {
+                    val entry = input.nextEntry ?: break
+                    if (entry.isDirectory || !entry.name.startsWith(ATTACHMENTS_DIR)) continue
+                    val name = entry.name.removePrefix(ATTACHMENTS_DIR)
+                    if (!io.github.estebangocoalt.blocdenotas.data.AttachmentLogic.isSafeName(name)) continue
+                    val data = readLimited(input, maxTotal - total)
+                    total += data.size
+                    result[name] = data
+                }
+            }
+        } catch (e: ZipException) {
+            throw BackupException(BackupException.Reason.CORRUPT, e)
+        } catch (e: IOException) {
+            throw BackupException(BackupException.Reason.CORRUPT, e)
+        }
+        return result
     }
 
     fun unpackEntry(zip: ByteArray, entryName: String): ByteArray {

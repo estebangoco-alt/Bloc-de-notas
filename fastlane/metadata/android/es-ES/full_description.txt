@@ -13,7 +13,7 @@ Bloc de notas reúne notas, ideas, listas de la compra, tareas, un tablero tipo 
 • Vistas guardadas, plantillas y modo compra
 
 <b>Tu privacidad primero</b>
-• Todo se guarda en tu dispositivo
+• Todo se guarda en tu dispositivo (sincronización opcional con tu servidor WebDAV/Nextcloud)
 • Sin cuentas, sin anuncios y sin analítica
 • Copia de seguridad y exportación a ZIP y Markdown
 • Software libre (GPL-3.0)

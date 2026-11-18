@@ -100,6 +100,7 @@ private fun NoteFilter.labelRes(): Int = when (this) {
 fun HomeScreen(
     onNewNote: () -> Unit,
     onNewFromTemplate: (NoteTemplate) -> Unit,
+    onNewFromCustom: (io.github.estebangocoalt.blocdenotas.data.CustomTemplate) -> Unit,
     onOpenNote: (String) -> Unit,
     onOpenInbox: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -147,6 +148,10 @@ fun HomeScreen(
             onPick = { template ->
                 templateMenu = false
                 onNewFromTemplate(template)
+            },
+            onPickCustom = { template ->
+                templateMenu = false
+                onNewFromCustom(template)
             },
             onBlank = {
                 templateMenu = false

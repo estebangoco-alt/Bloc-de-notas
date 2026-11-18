@@ -33,7 +33,8 @@ Las fases se pueden reordenar según lo que aprendamos. Nada de esto está imple
 - [ ] Tablero kanban con subtareas
 - [ ] Calendario y agenda
 - [ ] Tareas con repetición
-- [ ] Vistas guardadas, propiedades personalizadas
+- [x] Vistas guardadas (Notas, Tareas, Tablero y Calendario) y propiedades personalizadas
+- [x] Plantillas propias, pasillos en el modo compra y orden/filtros en Tareas
 - [x] Enlaces entre notas, menciones y subpáginas
 - [x] Comandos con `/`
 - [x] Widgets de lista, agenda y notas fijadas
@@ -41,8 +42,9 @@ Las fases se pueden reordenar según lo que aprendamos. Nada de esto está imple
 - [x] Exportar a Markdown y JSON
 
 ## Fase 4: ideas para después
-- [ ] Sincronización opcional (WebDAV / Nextcloud / Syncthing)
-- [ ] Nota de voz e imágenes
+- [x] Sincronización opcional con WebDAV / Nextcloud
+- [ ] Sincronización por carpeta (Syncthing)
+- [x] Imágenes y notas de voz
 - [ ] Importar desde Google Keep y Todoist
 - [ ] Relaciones entre tablas y línea de tiempo
 - [ ] Compilaciones reproducibles

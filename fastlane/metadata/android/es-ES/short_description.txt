@@ -1,1 +1,1 @@
-Notas, tareas, tablero y calendario con widgets, sin internet
+Notas, tareas, tablero y calendario con widgets, sin conexión
