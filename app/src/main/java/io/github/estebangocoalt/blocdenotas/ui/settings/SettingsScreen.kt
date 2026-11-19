@@ -84,6 +84,13 @@ fun SettingsScreen(
         ActivityResultContracts.OpenDocument(),
     ) { uri -> if (uri != null) pendingImport = uri }
 
+    val keepLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri -> if (uri != null) vm.importKeep(uri) }
+    val todoistLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri -> if (uri != null) vm.importTodoist(uri) }
+
     LaunchedEffect(message) {
         message?.let {
             snackbar.showSnackbar(context.getString(it.res, *it.args.toTypedArray()))
@@ -251,6 +258,20 @@ fun SettingsScreen(
                 trailingContent = {
                     Switch(checked = showSaints, onCheckedChange = { calendarPrefs.setShowSaints(it) })
                 },
+            )
+
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+
+            SectionLabel(R.string.settings_import_section)
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_import_keep)) },
+                supportingContent = { Text(stringResource(R.string.settings_import_keep_desc)) },
+                modifier = Modifier.clickable(enabled = !busy) { keepLauncher.launch(arrayOf("application/zip", "application/json", "application/octet-stream")) },
+            )
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.settings_import_todoist)) },
+                supportingContent = { Text(stringResource(R.string.settings_import_todoist_desc)) },
+                modifier = Modifier.clickable(enabled = !busy) { todoistLauncher.launch(arrayOf("text/csv", "text/comma-separated-values", "application/csv", "text/plain", "application/octet-stream")) },
             )
 
             HorizontalDivider(Modifier.padding(vertical = 8.dp))

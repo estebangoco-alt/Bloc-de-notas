@@ -5,6 +5,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y 
 ## [Sin publicar]
 
 ### Añadido
+- Importar desde otras apps (Ajustes → «Importar desde otras apps»): Google Keep (ZIP de Takeout o un `.json`; conserva listas, color, fijadas, etiquetas, archivadas con la etiqueta «archivada», imágenes y audio; ignora la papelera) y Todoist (CSV de un proyecto: crea un tablero nuevo con secciones como columnas, subtareas como casillas, comentarios en el texto, prioridad, fecha y repetición). Los ids salen del contenido, así que importar dos veces no duplica.
+- Tareas dependientes: en el editor de una tarea, «Depende de» (con detección de ciclos). Las tareas bloqueadas muestran «Esperando: …» en la lista. Campo opcional `dependsOn` en la copia de seguridad. La base de datos pasa a la versión 11.
+- Línea de tiempo en el calendario (junto a Mes y Agenda): barras por tarea desde que se puede empezar hasta su fecha límite, con las dependencias; también se puede guardar como vista.
 - Widget de nota rápida: botón de micrófono junto al «+». Abre la hoja de captura y empieza a grabar al momento (pide el permiso de micrófono la primera vez).
 - Nota rápida (widget): botón «Grabar voz» en la hoja de captura. La grabación se guarda sola o junto al texto, en el destino elegido (bandeja, nota, tarea, idea o compra); se puede escuchar antes de guardar y regrabar.
 - Imágenes y notas de voz en las notas: en el editor, «Imagen» (selector de fotos del sistema, sin permisos; se reducen a 1600 px y se guardan en JPEG) y «Grabar voz» (micrófono, se pide la primera vez; AAC en `.m4a`). Miniaturas con vista grande y reproductor de audio. Los archivos se guardan en el almacenamiento privado de la app y entran en la copia de seguridad (carpeta `attachments/` del ZIP y campo opcional `attachments`). La base de datos pasa a la versión 10.

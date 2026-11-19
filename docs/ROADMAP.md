@@ -45,8 +45,8 @@ Las fases se pueden reordenar según lo que aprendamos. Nada de esto está imple
 - [x] Sincronización opcional con WebDAV / Nextcloud
 - [ ] Sincronización por carpeta (Syncthing)
 - [x] Imágenes y notas de voz
-- [ ] Importar desde Google Keep y Todoist
-- [ ] Relaciones entre tablas y línea de tiempo
+- [x] Importar desde Google Keep y Todoist
+- [x] Relaciones entre tareas (dependencias) y línea de tiempo
 - [ ] Compilaciones reproducibles
 
 ## Fuera de alcance

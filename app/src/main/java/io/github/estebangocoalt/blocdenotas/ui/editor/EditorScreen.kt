@@ -253,6 +253,13 @@ fun EditorScreen(
                             priority = vm.priority,
                             onPriorityChange = { vm.priority = it },
                         )
+                        DependencyEditor(
+                            currentId = vm.currentId,
+                            dependsOn = vm.dependsOn,
+                            all = allNotes,
+                            swatch = swatch,
+                            onChange = { vm.dependsOn = it },
+                        )
                     }
 
                     NoteField(

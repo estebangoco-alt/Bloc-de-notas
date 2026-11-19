@@ -34,6 +34,8 @@ data class SavedView(
     val tasks: TaskQuery = TaskQuery(),
     val boardId: String = "",
     val agenda: Boolean = false,
+    /** CALENDAR: si se ve la línea de tiempo. */
+    val timeline: Boolean = false,
 )
 
 /** Fusión de listas por identificador. Lógica pura para probarla con tests de JVM. */

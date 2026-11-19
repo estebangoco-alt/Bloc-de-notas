@@ -64,8 +64,8 @@ Las casillas indican el estado actual: ✅ hecho, ⬜ pendiente.
 ### Versión 2 (ideas)
 - [x] Sincronización opcional con WebDAV / Nextcloud (Syncthing: pendiente)
 - [x] Imágenes y notas de voz adjuntas a las notas
-- [ ] Importar desde Google Keep y Todoist
-- [ ] Relaciones entre tablas y línea de tiempo
+- [x] Importar desde Google Keep y Todoist
+- [x] Relaciones entre tareas (dependencias) y línea de tiempo
 
 ## Widgets
 

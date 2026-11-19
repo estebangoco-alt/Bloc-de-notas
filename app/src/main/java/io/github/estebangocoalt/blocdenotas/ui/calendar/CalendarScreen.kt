@@ -89,6 +89,7 @@ fun CalendarScreen(
     var monthStart by rememberSaveable { mutableStateOf(today.withDayOfMonth(1).toEpochDay()) }
     var selected by rememberSaveable { mutableStateOf(today.toEpochDay()) }
     var agenda by rememberSaveable { mutableStateOf(false) }
+    var timeline by rememberSaveable { mutableStateOf(false) }
 
     val locale = Locale.getDefault()
     val month = YearMonth.from(LocalDate.ofEpochDay(monthStart))
@@ -108,8 +109,8 @@ fun CalendarScreen(
     val english = locale.language == "en"
 
     // Deslizar a izquierda o derecha en la vista de mes cambia de mes.
-    val swipeToChangeMonth = Modifier.pointerInput(agenda) {
-        if (agenda) return@pointerInput
+    val swipeToChangeMonth = Modifier.pointerInput(agenda, timeline) {
+        if (agenda || timeline) return@pointerInput
         var total = 0f
         detectHorizontalDragGestures(
             onDragStart = { total = 0f },
@@ -132,10 +133,14 @@ fun CalendarScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                listOf(false to R.string.view_month, true to R.string.view_agenda).forEach { (isAgenda, label) ->
+                // Mes, agenda y línea de tiempo (0, 1, 2).
+                listOf(0 to R.string.view_month, 1 to R.string.view_agenda, 2 to R.string.view_timeline).forEach { (mode, label) ->
                     FilterChip(
-                        selected = agenda == isAgenda,
-                        onClick = { agenda = isAgenda },
+                        selected = (if (timeline) 2 else if (agenda) 1 else 0) == mode,
+                        onClick = {
+                            agenda = mode == 1
+                            timeline = mode == 2
+                        },
                         label = { Text(stringResource(label)) },
                         shape = CircleShape,
                         border = null,
@@ -156,13 +161,21 @@ fun CalendarScreen(
                 onApplyView = { view ->
                     vm.setQuery(view.tasks)
                     agenda = view.agenda
+                    timeline = view.timeline
                 },
-                onSaveView = { name -> vm.saveView(name, agenda = agenda) },
+                onSaveView = { name -> vm.saveView(name, agenda = agenda, timeline = timeline) },
                 onDeleteView = vm::deleteView,
                 modifier = Modifier.padding(top = 8.dp),
                 showSort = false,
             )
-            if (agenda) {
+            if (timeline) {
+                TimelineView(
+                    tasks = tasks.map { it.note },
+                    todayDay = todayDay,
+                    onOpenTask = onOpenTask,
+                    modifier = Modifier.weight(1f),
+                )
+            } else if (agenda) {
                 AgendaList(
                     tasks = tasks,
                     todayDay = todayDay,

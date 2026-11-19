@@ -73,6 +73,8 @@ class EditorViewModel(app: Application, handle: SavedStateHandle) : AndroidViewM
     var repeatRule by mutableStateOf(RepeatRule.NONE)
     var priority by mutableStateOf(Priority.NONE)
     var tags by mutableStateOf("")
+    /** Ids de las tareas de las que depende esta (ver DependencyLogic). */
+    var dependsOn by mutableStateOf("")
     var parentId by mutableStateOf<String?>(null)
 
     /** Notas visibles (no borradas), para enlaces, referencias y subpáginas. */
@@ -140,6 +142,7 @@ class EditorViewModel(app: Application, handle: SavedStateHandle) : AndroidViewM
                 repeatRule = RepeatRule.fromName(note.repeatRule)
                 priority = note.priority
                 tags = note.tags
+                dependsOn = note.dependsOn
                 parentId = note.parentId
                 existing.items.forEach { items += EditItem(it.id, it.text, it.checked, it.aisle) }
                 attachments += repository.attachmentsOf(id)
@@ -281,6 +284,7 @@ class EditorViewModel(app: Application, handle: SavedStateHandle) : AndroidViewM
             repeatRule = if (dueAt != null && repeatRule != RepeatRule.NONE) repeatRule.name else null,
             priority = if (kind == NoteKind.TASK) priority else Priority.NONE,
             tags = tags,
+            dependsOn = if (kind == NoteKind.TASK) dependsOn else "",
             parentId = parentId,
             completedAt = if (completed) (completedAtStored ?: System.currentTimeMillis()) else null,
             createdAt = createdAt,
@@ -303,5 +307,5 @@ class EditorViewModel(app: Application, handle: SavedStateHandle) : AndroidViewM
     }
 
     private fun stateKey(): String =
-        listOf(title, body, kind, colorIndex, pinned, dueAt, completed, reminderMinute, repeatRule, priority, tags, parentId, items.map { listOf(it.id, it.text, it.checked, it.aisle) }, attachments.map { it.id }).toString()
+        listOf(title, body, kind, colorIndex, pinned, dueAt, completed, reminderMinute, repeatRule, priority, tags, dependsOn, parentId, items.map { listOf(it.id, it.text, it.checked, it.aisle) }, attachments.map { it.id }).toString()
 }

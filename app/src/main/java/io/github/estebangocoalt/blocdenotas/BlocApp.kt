@@ -44,6 +44,7 @@ class BlocApp : Application() {
         io.github.estebangocoalt.blocdenotas.data.CalendarPrefs(this)
     }
     val backupManager: BackupManager by lazy { BackupManager(this, repository) }
+    val importManager: io.github.estebangocoalt.blocdenotas.importer.ImportManager by lazy { io.github.estebangocoalt.blocdenotas.importer.ImportManager(this) }
 
     @OptIn(kotlinx.coroutines.FlowPreview::class)
     override fun onCreate() {

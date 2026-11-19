@@ -57,6 +57,8 @@ data class NoteEntity(
     /** Columna del tablero donde está la tarjeta (solo tareas). null = primera columna. */
     val columnId: String? = null,
     @ColumnInfo(defaultValue = "0") val columnPosition: Int = 0,
+    /** Ids de las tareas de las que depende esta (separados por comas). Ver [DependencyLogic]. */
+    @ColumnInfo(defaultValue = "''") val dependsOn: String = "",
 )
 
 /** Un tablero (uno por proyecto). Los tableros se ordenan por [position]. */

@@ -358,4 +358,20 @@
     <string name="sync_err_config">Rellena la dirección, el usuario y la contraseña.</string>
     <string name="sync_err_server">El servidor ha respondido con un error.</string>
     <string name="capture_record_again">Grabar de nuevo</string>
+    <string name="dep_title">Depende de</string>
+    <string name="dep_add">+ Añadir</string>
+    <string name="dep_blocks">Bloquea a: %1$s</string>
+    <string name="dep_pick_title">Elegir tarea</string>
+    <string name="dep_waiting">Esperando: %1$s</string>
+    <string name="dep_after">después de %1$s</string>
+    <string name="timeline_empty">No hay tareas con fecha para mostrar</string>
+    <string name="timeline_undated">%1$d tareas sin fecha</string>
+    <string name="view_timeline">Línea de tiempo</string>
+    <string name="settings_import_section">Importar desde otras apps</string>
+    <string name="settings_import_keep">Google Keep</string>
+    <string name="settings_import_keep_desc">Elige el ZIP de Google Takeout (o un .json de una nota)</string>
+    <string name="settings_import_todoist">Todoist</string>
+    <string name="settings_import_todoist_desc">Elige el .csv de un proyecto: se crea un tablero nuevo</string>
+    <string name="import_default_column">Tareas</string>
+    <string name="msg_import_dates">Importación terminada: %1$d añadidas, %2$d actualizadas, %3$d sin cambios. %4$d fechas no se entendieron.</string>
 </resources>

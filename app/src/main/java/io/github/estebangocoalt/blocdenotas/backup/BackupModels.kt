@@ -5,6 +5,7 @@ import io.github.estebangocoalt.blocdenotas.data.AttachmentEntity
 import io.github.estebangocoalt.blocdenotas.data.AttachmentKind
 import io.github.estebangocoalt.blocdenotas.data.AttachmentLogic
 import io.github.estebangocoalt.blocdenotas.data.CustomTemplate
+import io.github.estebangocoalt.blocdenotas.data.DependencyLogic
 import io.github.estebangocoalt.blocdenotas.data.SavedView
 import io.github.estebangocoalt.blocdenotas.data.Priority
 import io.github.estebangocoalt.blocdenotas.data.RepeatRule
@@ -73,6 +74,8 @@ data class BackupNote(
     val tags: List<String> = emptyList(),
     val parentId: String? = null,
     val deletedAt: Long? = null,
+    /** Ids de las tareas de las que depende (campo opcional). */
+    val dependsOn: List<String> = emptyList(),
     val items: List<BackupItem> = emptyList(),
 )
 
@@ -140,6 +143,7 @@ object BackupMapper {
                 priority = note.priority,
                 tags = TagLogic.parse(note.tags),
                 parentId = note.parentId,
+                dependsOn = DependencyLogic.parse(note.dependsOn),
                 deletedAt = note.deletedAt,
                 items = itemsByNote[note.id].orEmpty().sortedBy { it.position }.map { item ->
                     BackupItem(item.id, item.text, item.checked, item.position, item.aisle)
@@ -208,6 +212,7 @@ object BackupMapper {
                 priority = Priority.clamp(n.priority),
                 tags = TagLogic.join(n.tags),
                 parentId = n.parentId?.takeIf { it.isNotBlank() && it != n.id },
+                dependsOn = DependencyLogic.join(n.dependsOn.filter { it != n.id }),
                 deletedAt = n.deletedAt,
                 repeatRule = RepeatRule.fromName(n.repeat).takeIf { it != RepeatRule.NONE }?.name,
             )

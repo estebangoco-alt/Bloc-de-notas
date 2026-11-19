@@ -41,6 +41,11 @@ class TasksViewModel(app: Application) : AndroidViewModel(app) {
             TaskQueryLogic.apply(list.map { it.note }, query).mapNotNull { byId[it.id] }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    /** Todas las tareas por id (sin filtrar), para saber qué dependencias siguen pendientes. */
+    val taskIndex: StateFlow<Map<String, io.github.estebangocoalt.blocdenotas.data.NoteEntity>> =
+        allTasks.map { list -> list.associate { it.note.id to it.note } }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
+
     /** Etiquetas usadas en las tareas, para el filtro. */
     val tags: StateFlow<List<String>> =
         allTasks.map { list -> TagLogic.all(list.map { it.note.tags }) }
@@ -56,8 +61,8 @@ class TasksViewModel(app: Application) : AndroidViewModel(app) {
 
     fun viewsOf(all: List<SavedView>): List<SavedView> = all.filter { it.scope == scope }
 
-    fun saveView(name: String, agenda: Boolean = false) {
-        store.add(SavedView(name = name, scope = scope, tasks = _query.value, agenda = agenda))
+    fun saveView(name: String, agenda: Boolean = false, timeline: Boolean = false) {
+        store.add(SavedView(name = name, scope = scope, tasks = _query.value, agenda = agenda, timeline = timeline))
     }
 
     fun deleteView(id: String) = store.remove(id)

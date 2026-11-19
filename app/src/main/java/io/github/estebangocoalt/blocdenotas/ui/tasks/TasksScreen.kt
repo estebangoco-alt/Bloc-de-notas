@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.estebangocoalt.blocdenotas.R
+import io.github.estebangocoalt.blocdenotas.data.DependencyLogic
 import io.github.estebangocoalt.blocdenotas.data.NoteWithItems
 import io.github.estebangocoalt.blocdenotas.data.RepeatRule
 import io.github.estebangocoalt.blocdenotas.ui.editor.labelRes
@@ -72,6 +73,7 @@ fun TasksScreen(
     val tasks by vm.tasks.collectAsStateWithLifecycle()
     val today = remember { LocalDate.now().toEpochDay() }
     val byId = remember(tasks) { tasks.associateBy { it.note.id } }
+    val taskIndex by vm.taskIndex.collectAsStateWithLifecycle()
     val query by vm.query.collectAsStateWithLifecycle()
     val tags by vm.tags.collectAsStateWithLifecycle()
     val allViews by vm.views.collectAsStateWithLifecycle()
@@ -133,6 +135,7 @@ fun TasksScreen(
                         TaskRow(
                             task = task,
                             overdue = bucket == TaskBucket.OVERDUE,
+                            blockedBy = DependencyLogic.blockers(task.note, taskIndex).map { it.title },
                             onToggle = { done -> vm.setCompleted(task.note.id, done) },
                             onOpen = { onOpenTask(task.note.id) },
                         )
@@ -159,6 +162,8 @@ internal fun TaskRow(
     overdue: Boolean,
     onToggle: (Boolean) -> Unit,
     onOpen: () -> Unit,
+    /** Títulos de las tareas pendientes de las que depende. Vacío = libre. */
+    blockedBy: List<String> = emptyList(),
 ) {
     val note = task.note
     val done = note.completedAt != null
@@ -210,6 +215,15 @@ internal fun TaskRow(
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = if (overdue) FontWeight.Bold else FontWeight.Normal,
                     color = if (overdue) MaterialTheme.colorScheme.error else swatch.accent,
+                )
+            }
+            if (blockedBy.isNotEmpty() && !done) {
+                Text(
+                    text = stringResource(R.string.dep_waiting, blockedBy.joinToString(", ") { it.ifBlank { "…" } }),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = swatch.content.copy(alpha = 0.75f),
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
             PropertyChips(note.priority, note.tags, modifier = Modifier.padding(top = 6.dp))

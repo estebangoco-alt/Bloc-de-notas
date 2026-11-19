@@ -273,6 +273,17 @@ class NoteRepository(
         )
     }
 
+    suspend fun boardCount(): Int = dao.boardCount()
+
+    /** Añade datos de otras apps (Keep, Todoist) sin borrar nada. Los ids son estables, así que repetir no duplica. */
+    suspend fun importExternal(
+        notes: List<NoteEntity>,
+        items: List<ChecklistItemEntity>,
+        columns: List<BoardColumnEntity> = emptyList(),
+        boards: List<BoardEntity> = emptyList(),
+        attachments: List<AttachmentEntity> = emptyList(),
+    ): ImportResult = dao.applyImport(notes, items, replace = false, columns = columns, boards = boards, attachments = attachments)
+
     /** [availableFiles] son los nombres de adjuntos cuyo archivo se ha podido restaurar. */
     suspend fun importBackup(file: BackupFile, mode: ImportMode, availableFiles: Set<String> = emptySet()): ImportResult {
         val (notes, items) = BackupMapper.toEntities(file)

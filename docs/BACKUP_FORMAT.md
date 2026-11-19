@@ -55,6 +55,8 @@ importar en otro dispositivo. Este documento describe el formato (versión 1).
 
 `repeat` indica si la tarea se repite: `DAILY`, `WEEKLY`, `MONTHLY` o `YEARLY` (ausente o `null` = no se repite). Al marcarla como hecha pasa a su siguiente fecha.
 
+`dependsOn` (opcional) es la lista de ids de las tareas de las que depende la tarea.
+
 `priority` es la prioridad de la tarea (0 = ninguna, 1 = baja, 2 = media, 3 = alta) y `tags` la lista de etiquetas; ambos son opcionales.
 
 `parentId` es el id de la nota que contiene esta subpágina (ausente o `null` = nota de primer nivel) y `deletedAt` el instante en que se envió a la papelera (`null` = no está en la papelera); ambos son opcionales.

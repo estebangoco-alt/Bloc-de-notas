@@ -69,6 +69,37 @@ class SettingsViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun importKeep(uri: Uri) {
+        viewModelScope.launch {
+            _busy.value = true
+            _message.value = try {
+                val r = getApplication<Application>().blocApp.importManager.importKeep(uri)
+                UiMessage(R.string.msg_import_ok, listOf(r.added, r.updated, r.skipped))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                errorMessage(e)
+            }
+            _busy.value = false
+        }
+    }
+
+    fun importTodoist(uri: Uri) {
+        viewModelScope.launch {
+            _busy.value = true
+            _message.value = try {
+                val (r, bad) = getApplication<Application>().blocApp.importManager.importTodoist(uri)
+                if (bad > 0) UiMessage(R.string.msg_import_dates, listOf(r.added, r.updated, r.skipped, bad))
+                else UiMessage(R.string.msg_import_ok, listOf(r.added, r.updated, r.skipped))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                errorMessage(e)
+            }
+            _busy.value = false
+        }
+    }
+
     /** Activa o desactiva el bloqueo. Solo se puede activar si el móvil tiene huella o bloqueo de pantalla. */
     fun setLockEnabled(enabled: Boolean) {
         val app = getApplication<Application>()
