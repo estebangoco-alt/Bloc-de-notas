@@ -39,7 +39,7 @@ Explica el problema que resuelve, no solo la solución. Si encaja con la [hoja d
 ## Preparar el entorno
 
 ```bash
-git clone https://github.com/estebangoco-alt/Bloc-de-notas.git
+git clone https://github.com/nicarao-dev/Bloc-de-notas.git
 cd Bloc-de-notas
 ./gradlew assembleDebug
 ./gradlew test

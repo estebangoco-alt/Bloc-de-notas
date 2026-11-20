@@ -76,14 +76,14 @@ Categories:
   - Time
 License: GPL-3.0-or-later
 AuthorName: Esteban
-SourceCode: https://github.com/estebangoco-alt/Bloc-de-notas
-IssueTracker: https://github.com/estebangoco-alt/Bloc-de-notas/issues
-Changelog: https://github.com/estebangoco-alt/Bloc-de-notas/blob/main/CHANGELOG.md
+SourceCode: https://github.com/nicarao-dev/Bloc-de-notas
+IssueTracker: https://github.com/nicarao-dev/Bloc-de-notas/issues
+Changelog: https://github.com/nicarao-dev/Bloc-de-notas/blob/main/CHANGELOG.md
 
 AutoName: Bloc de notas
 
 RepoType: git
-Repo: https://github.com/estebangoco-alt/Bloc-de-notas.git
+Repo: https://github.com/nicarao-dev/Bloc-de-notas.git
 
 Builds:
   - versionName: 1.0.0

@@ -44,7 +44,7 @@ F-Droid (publication in progress, see [docs/FDROID.md](docs/FDROID.md)) or APKs 
 JDK 17 and the Android SDK (compileSdk 35, minSdk 26):
 
 ```bash
-git clone https://github.com/estebangoco-alt/Bloc-de-notas.git
+git clone https://github.com/nicarao-dev/Bloc-de-notas.git
 cd Bloc-de-notas
 ./gradlew assembleDebug
 ./gradlew test

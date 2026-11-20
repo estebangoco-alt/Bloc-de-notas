@@ -112,7 +112,7 @@ Todo en **Ajustes**, sin permisos de almacenamiento:
 Requisitos: Android Studio reciente (o solo las herramientas de línea de comandos), JDK 17 y Android SDK (compileSdk 35, minSdk 26 = Android 8.0 o superior).
 
 ```bash
-git clone https://github.com/estebangoco-alt/Bloc-de-notas.git
+git clone https://github.com/nicarao-dev/Bloc-de-notas.git
 cd Bloc-de-notas
 ./gradlew assembleDebug   # el APK queda en app/build/outputs/apk/debug/
 ./gradlew test            # pruebas de la lógica
