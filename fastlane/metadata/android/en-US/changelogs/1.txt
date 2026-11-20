@@ -1,0 +1,1 @@
+First release: notes, ideas, shopping and tasks with widgets; board per project; calendar with agenda, timeline and holidays; images and voice notes; optional WebDAV sync; import from Keep and Todoist; backup.

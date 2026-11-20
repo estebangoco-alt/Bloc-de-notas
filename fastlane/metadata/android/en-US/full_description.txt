@@ -1,19 +1,22 @@
 Bloc de notas brings notes, ideas, shopping lists, tasks, a Trello-style board and a calendar together in one app, designed for jotting things down instantly from your home screen.
 
 <b>Instant capture</b>
-• Quick-capture widget, icon shortcuts and a quick settings tile
+• Quick-capture widget with voice notes, icon shortcuts and a quick settings tile
 • Inbox to sort things out later
 • Share text from other apps
 
 <b>Organize your way</b>
-• Notes and checklists with colors and pinned notes
-• Tasks with dates, priority, labels and reminders
-• Board with columns and subtasks
-• Calendar with agenda
-• Saved views, templates and shopping mode
+• Notes and checklists with colors, pinned notes, images (gallery or camera) and voice notes
+• Tasks with dates, repeat, priority, labels, reminders and task dependencies
+• One board per project, with columns and subtasks
+• Calendar with month, agenda and timeline views, holidays and saints' days
+• Saved views, your own templates and a shopping mode with aisles and quantities
+• Dashboard summarizing your notes, tasks and ideas
 
 <b>Privacy first</b>
-• Everything stays on your device
+• Everything stays on your device; optional sync with your own WebDAV/Nextcloud server
+• Fingerprint lock and trash
 • No accounts, no ads, no analytics
 • Backup and export to ZIP and Markdown
+• Import from Google Keep (Takeout) and Todoist (CSV)
 • Free software (GPL-3.0)

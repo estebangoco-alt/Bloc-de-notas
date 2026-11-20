@@ -29,11 +29,11 @@ Con esa cuenta podrás hacer un *fork* de `fdroiddata` y abrir un *merge request
 
 ### 3.1 Etiquetar cada versión
 
-Cada versión oficial debe tener una etiqueta de Git que coincida con su `versionName`. Por ejemplo, para la versión `0.1.0`:
+Cada versión oficial debe tener una etiqueta de Git que coincida con su `versionName`. Por ejemplo, para la versión `1.0.0`:
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+git tag v1.0.0
+git push origin v1.0.0
 ```
 
 ### 3.2 Añadir los metadatos de la ficha (estilo Fastlane)
@@ -86,16 +86,16 @@ RepoType: git
 Repo: https://github.com/estebangoco-alt/Bloc-de-notas.git
 
 Builds:
-  - versionName: 0.1.0
+  - versionName: 1.0.0
     versionCode: 1
-    commit: v0.1.0
+    commit: v1.0.0
     subdir: app
     gradle:
       - yes
 
 AutoUpdateMode: Version v%v
 UpdateCheckMode: Tags
-CurrentVersion: 0.1.0
+CurrentVersion: 1.0.0
 CurrentVersionCode: 1
 ```
 
@@ -136,7 +136,7 @@ En GitLab, abre un *merge request* de tu rama hacia `fdroiddata`. Responde pront
 - [ ] Licencia libre en el repositorio (`LICENSE`)
 - [ ] Sin Firebase, Google Play Services, anuncios ni analítica
 - [ ] ID de aplicación propio y definitivo
-- [ ] Etiqueta de Git para la versión (`v0.1.0`)
+- [ ] Etiqueta de Git para la versión (`v1.0.0`)
 - [ ] `versionName` y `versionCode` en `app/build.gradle.kts`
 - [ ] Carpeta `fastlane/metadata/android/` con textos, icono y capturas
 - [ ] Gradle Wrapper incluido y la app compila con `./gradlew assembleRelease`

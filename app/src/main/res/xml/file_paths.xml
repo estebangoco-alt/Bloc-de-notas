@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Solo la carpeta temporal donde la app de cámara deja la foto antes de guardarla en la nota. -->
+    <cache-path name="camera" path="camera/" />
+</paths>

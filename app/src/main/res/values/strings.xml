@@ -376,4 +376,6 @@
     <string name="settings_import_todoist_desc">Pick a project\'s .csv: a new board is created</string>
     <string name="import_default_column">Tasks</string>
     <string name="msg_import_dates">Import finished: %1$d added, %2$d updated, %3$d unchanged. %4$d dates were not understood.</string>
+    <string name="attach_camera">Camera</string>
+    <string name="attach_camera_failed">Could not open the camera</string>
 </resources>

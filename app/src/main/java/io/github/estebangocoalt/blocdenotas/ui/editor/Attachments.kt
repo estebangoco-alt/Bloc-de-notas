@@ -92,6 +92,34 @@ internal fun AttachmentsSection(vm: EditorViewModel, swatch: NoteSwatch, modifie
         if (uri != null) vm.addImage(uri) { Toast.makeText(context, imageFailed, Toast.LENGTH_SHORT).show() }
     }
 
+    var cameraFile by remember { mutableStateOf<File?>(null) }
+    val cameraFailed = stringResource(R.string.attach_camera_failed)
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
+        val file = cameraFile
+        cameraFile = null
+        if (ok && file != null && file.length() > 0) {
+            val uri = androidx.core.net.toUri(file)
+            vm.addImage(uri) { Toast.makeText(context, imageFailed, Toast.LENGTH_SHORT).show() }
+            // La foto ya se copió reducida a la app; el archivo temporal no hace falta.
+            file.deleteOnExit()
+        } else {
+            file?.delete()
+        }
+    }
+
+    fun takePhoto() {
+        val dir = File(context.cacheDir, "camera").apply { mkdirs() }
+        val file = File(dir, "foto-${System.currentTimeMillis()}.jpg")
+        val uri = androidx.core.content.FileProvider.getUriForFile(context, context.packageName + ".fileprovider", file)
+        cameraFile = file
+        try {
+            cameraLauncher.launch(uri)
+        } catch (e: android.content.ActivityNotFoundException) {
+            cameraFile = null
+            Toast.makeText(context, cameraFailed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     fun startRecording() {
         player.stop()
         playingId = null
@@ -124,6 +152,9 @@ internal fun AttachmentsSection(vm: EditorViewModel, swatch: NoteSwatch, modifie
                 imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             }) {
                 Text("🖼  " + stringResource(R.string.attach_image), color = swatch.accent, fontWeight = FontWeight.SemiBold)
+            }
+            TextButton(onClick = ::takePhoto) {
+                Text("📷  " + stringResource(R.string.attach_camera), color = swatch.accent, fontWeight = FontWeight.SemiBold)
             }
             if (recording) {
                 TextButton(onClick = ::stopRecording) {

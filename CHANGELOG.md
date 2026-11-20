@@ -4,7 +4,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y 
 
 ## [Sin publicar]
 
+## [1.0.0] - 2026-11-20
+
 ### Añadido
+- Cámara en el editor: botón «Cámara» junto a «Imagen». Usa la app de cámara del sistema (sin permiso de cámara); la foto se reduce y se guarda como el resto de imágenes. El archivo temporal vive en la caché de la app y se comparte solo con la cámara mediante un `FileProvider`.
+- Cantidades en el modo compra: se reconocen al escribir el artículo («2 kg arroz», «3x yogures», «leche x2», «6 huevos») y se muestran destacadas a la derecha. No cambia la base de datos: la cantidad sigue siendo parte del texto.
 - Importar desde otras apps (Ajustes → «Importar desde otras apps»): Google Keep (ZIP de Takeout o un `.json`; conserva listas, color, fijadas, etiquetas, archivadas con la etiqueta «archivada», imágenes y audio; ignora la papelera) y Todoist (CSV de un proyecto: crea un tablero nuevo con secciones como columnas, subtareas como casillas, comentarios en el texto, prioridad, fecha y repetición). Los ids salen del contenido, así que importar dos veces no duplica.
 - Tareas dependientes: en el editor de una tarea, «Depende de» (con detección de ciclos). Las tareas bloqueadas muestran «Esperando: …» en la lista. Campo opcional `dependsOn` en la copia de seguridad. La base de datos pasa a la versión 11.
 - Línea de tiempo en el calendario (junto a Mes y Agenda): barras por tarea desde que se puede empezar hasta su fecha límite, con las dependencias; también se puede guardar como vista.

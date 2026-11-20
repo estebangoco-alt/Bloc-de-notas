@@ -255,14 +255,28 @@ private fun ShoppingRow(item: ChecklistItemEntity, swatch: NoteSwatch, onToggle:
         verticalAlignment = Alignment.CenterVertically,
     ) {
         BigCheck(checked = item.checked, swatch = swatch)
+        val entry = remember(item.text) { io.github.estebangocoalt.blocdenotas.data.QuantityLogic.parse(item.text) }
         Text(
-            text = item.text,
+            text = entry.name,
             fontSize = 22.sp,
             fontWeight = FontWeight.SemiBold,
             textDecoration = if (item.checked) TextDecoration.LineThrough else null,
             color = if (item.checked) swatch.accent.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(start = 16.dp).weight(1f),
         )
+        if (entry.quantity != null) {
+            Text(
+                text = entry.quantity,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                textDecoration = if (item.checked) TextDecoration.LineThrough else null,
+                color = swatch.accent,
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .background(swatch.accent.copy(alpha = 0.15f), RoundedCornerShape(12.dp))
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+            )
+        }
     }
 }
 

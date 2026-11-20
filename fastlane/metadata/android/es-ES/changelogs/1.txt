@@ -1,0 +1,1 @@
+Primera versión: notas, ideas, compra y tareas con widgets; tablero por proyecto; calendario con agenda, línea de tiempo y festivos; imágenes y notas de voz; sincronización opcional WebDAV; importación desde Keep y Todoist; copia de seguridad.

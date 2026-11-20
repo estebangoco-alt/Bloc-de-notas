@@ -374,4 +374,6 @@
     <string name="settings_import_todoist_desc">Elige el .csv de un proyecto: se crea un tablero nuevo</string>
     <string name="import_default_column">Tareas</string>
     <string name="msg_import_dates">Importación terminada: %1$d añadidas, %2$d actualizadas, %3$d sin cambios. %4$d fechas no se entendieron.</string>
+    <string name="attach_camera">Cámara</string>
+    <string name="attach_camera_failed">No se pudo abrir la cámara</string>
 </resources>
