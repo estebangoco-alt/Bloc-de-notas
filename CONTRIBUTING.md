@@ -19,6 +19,10 @@ Estas reglas existen para poder publicar en F-Droid y no se negocian:
 5. **Los datos son del usuario:** todo local, exportable y sin cuentas obligatorias.
 6. Los recursos (iconos, fuentes, imágenes) deben tener una licencia que permita redistribuirlos. Indica su origen.
 
+## Contacto
+
+Lo mejor es usar las [incidencias](../../issues) de GitHub: así todo queda público y otras personas pueden ayudar. Si no tienes cuenta de GitHub o prefieres algo privado, escribe a **unedited@tutamail.com**.
+
 ## Cómo informar de un error
 
 Abre una incidencia con:
@@ -36,7 +40,7 @@ Explica el problema que resuelve, no solo la solución. Si encaja con la [hoja d
 
 ```bash
 git clone https://github.com/estebangoco-alt/Bloc-de-notas.git
-cd bloc-de-notas
+cd Bloc-de-notas
 ./gradlew assembleDebug
 ./gradlew test
 ```

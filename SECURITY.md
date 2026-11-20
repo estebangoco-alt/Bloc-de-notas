@@ -5,7 +5,8 @@
 Si encuentras un fallo de seguridad o de privacidad, **no abras una incidencia pública**. Avisa de forma privada:
 
 1. En GitHub, ve a la pestaña **Security** del repositorio y pulsa **Report a vulnerability** (aviso privado).
-2. Cuenta qué pasa, los pasos para reproducirlo, la versión de la app y la de Android.
+2. Si no puedes usar GitHub, escribe a **unedited@tutamail.com** con el asunto «Seguridad – Bloc de notas». No pegues datos personales.
+3. Cuenta qué pasa, los pasos para reproducirlo, la versión de la app y la de Android.
 
 Responderé lo antes posible, normalmente en una semana. Cuando haya arreglo, publicaré una versión nueva y te mencionaré en el CHANGELOG si quieres.
 

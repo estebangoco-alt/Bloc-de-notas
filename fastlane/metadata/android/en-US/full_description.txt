@@ -1,7 +1,7 @@
 Bloc de notas brings notes, ideas, shopping lists, tasks, a Trello-style board and a calendar together in one app, designed for jotting things down instantly from your home screen.
 
 <b>Instant capture</b>
-• Quick-capture widget with voice notes, icon shortcuts and a quick settings tile
+• Quick-capture widget with voice notes, plus task, agenda and pinned-notes widgets
 • Inbox to sort things out later
 • Share text from other apps
 

@@ -1,7 +1,7 @@
 Bloc de notas reúne notas, ideas, listas de la compra, tareas, un tablero tipo Trello y un calendario en una sola app, pensada para apuntar al instante desde la pantalla de inicio.
 
 <b>Captura instantánea</b>
-• Widget de captura rápida con nota de voz, atajos del icono y tile de ajustes rápidos
+• Widget de captura rápida con nota de voz y widgets de tareas, agenda y notas fijadas
 • Bandeja de entrada para clasificar después
 • Compartir texto desde otras apps
 

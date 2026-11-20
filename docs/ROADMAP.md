@@ -22,7 +22,7 @@ Las fases se pueden reordenar según lo que aprendamos. Nada de esto está imple
 - [ ] Bandeja de entrada y captura rápida
 - [ ] Compartir desde otras apps
 - [ ] Widget de captura rápida 4×1
-- [ ] Atajos del icono y tile de ajustes rápidos
+- [ ] Atajos del icono y tile de ajustes rápidos (idea pendiente)
 - [ ] Recordatorios
 - [ ] Plantillas y modo compra
 - [ ] Copia de seguridad ZIP
