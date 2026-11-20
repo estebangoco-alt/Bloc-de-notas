@@ -13,3 +13,4 @@ app/build/
 *.jks
 *.keystore
 .kotlin/
+_to_delete/

@@ -23,6 +23,8 @@ class ShareReceiverActivity : ComponentActivity() {
             val shared = listOfNotNull(subject, text)
                 .filter { it.isNotBlank() }
                 .joinToString("\n")
+                // Cualquier app puede compartir texto aquí: se limita el tamaño para que nadie llene la base de datos.
+                .take(MAX_SHARED_CHARS)
 
             if (shared.isNotBlank()) {
                 val repository = blocApp.repository
@@ -31,5 +33,9 @@ class ShareReceiverActivity : ComponentActivity() {
             }
         }
         finish()
+    }
+
+    private companion object {
+        const val MAX_SHARED_CHARS = 100_000
     }
 }

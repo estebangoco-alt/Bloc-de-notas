@@ -21,7 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -114,7 +114,7 @@ fun DashboardScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     StatCard(
                         colorIndex = 1,
-                        icon = Icons.Default.List,
+                        icon = Icons.AutoMirrored.Filled.List,
                         title = R.string.dash_board,
                         value = data.boardCards,
                         subtitle = stringResource(R.string.dash_board_sub, data.boards.size, data.boardPercent),

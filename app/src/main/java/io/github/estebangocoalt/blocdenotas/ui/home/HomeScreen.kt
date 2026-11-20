@@ -19,7 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -192,7 +192,7 @@ fun HomeScreen(
                         onClick = { templateMenu = true },
                         modifier = Modifier.size(42.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant),
                     ) {
-                        Icon(Icons.Default.List, contentDescription = stringResource(R.string.template_menu))
+                        Icon(Icons.AutoMirrored.Filled.List, contentDescription = stringResource(R.string.template_menu))
                     }
                 }
                 val inboxDescription = stringResource(R.string.cd_inbox, inboxCount)

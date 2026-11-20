@@ -4,6 +4,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y 
 
 ## [Sin publicar]
 
+### Seguridad
+- Añadido `SECURITY.md` con cómo reportar vulnerabilidades. Revisados los componentes exportados del manifest (solo los necesarios) y limitado el tamaño del texto recibido por «Compartir».
+
 ## [1.0.0] - 2026-11-20
 
 ### Añadido

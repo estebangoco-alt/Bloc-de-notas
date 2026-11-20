@@ -98,7 +98,7 @@ internal fun AttachmentsSection(vm: EditorViewModel, swatch: NoteSwatch, modifie
         val file = cameraFile
         cameraFile = null
         if (ok && file != null && file.length() > 0) {
-            val uri = androidx.core.net.toUri(file)
+            val uri = android.net.Uri.fromFile(file)
             vm.addImage(uri) { Toast.makeText(context, imageFailed, Toast.LENGTH_SHORT).show() }
             // La foto ya se copió reducida a la app; el archivo temporal no hace falta.
             file.deleteOnExit()

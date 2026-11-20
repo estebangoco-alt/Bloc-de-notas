@@ -150,6 +150,7 @@ docs/                        Hoja de ruta, formato de la copia y guía de public
 scripts/                     Utilidades (p. ej. cambiar el identificador de la app)
 fastlane/metadata/android/   Textos, iconos y capturas para F-Droid
 CONTRIBUTING.md              Guía para colaborar
+SECURITY.md                  Cómo reportar vulnerabilidades
 CHANGELOG.md                 Historial de cambios
 LICENSE                      Licencia (GPL-3.0)
 ```

@@ -10,7 +10,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -81,7 +81,7 @@ private val topLevelDestinations = listOf(
     TopLevelDestination(Routes.DASHBOARD, R.string.nav_dashboard, Icons.Default.Home),
     TopLevelDestination(Routes.NOTES, R.string.nav_notes, Icons.Default.Create),
     TopLevelDestination(Routes.TASKS, R.string.nav_tasks, Icons.Default.CheckCircle),
-    TopLevelDestination(Routes.BOARD, R.string.nav_board, Icons.Default.List),
+    TopLevelDestination(Routes.BOARD, R.string.nav_board, Icons.AutoMirrored.Filled.List),
     TopLevelDestination(Routes.CALENDAR, R.string.nav_calendar, Icons.Default.DateRange),
 )
 
